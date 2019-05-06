@@ -34,7 +34,7 @@ const SAMPLE_DATA = (([xCount, yCount], spacing) => {
   return data;
 })([10, 10], 120);
 
-class Example extends PureComponent {
+export default class App extends PureComponent {
   render() {
     const layers = [
       new SimpleMeshLayer({
@@ -60,5 +60,5 @@ class Example extends PureComponent {
 }
 
 export function renderToDOM(container) {
-  render(<Example />, container);
+  render(<App />, container);
 }

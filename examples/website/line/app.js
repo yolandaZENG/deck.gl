@@ -42,7 +42,7 @@ function getSize(type) {
   return 60;
 }
 
-export class App extends Component {
+export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
