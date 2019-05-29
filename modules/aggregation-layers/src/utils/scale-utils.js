@@ -50,3 +50,55 @@ export function getLinearScale(domain, range) {
   return value =>
     ((value - domain[0]) / (domain[1] - domain[0])) * (range[1] - range[0]) + range[0];
 }
+
+// quantile
+
+function ascending(a, b) {
+  return a - b;
+}
+
+function threshold(domain, fraction) {
+  const n = domain.length;
+  if (fraction <= 0 || n < 2) {
+    return domain[0];
+  }
+  if (fraction >= 1) {
+    return domain[n - 1];
+  }
+
+  const domainFraction = (n - 1) * fraction;
+  const lowIndex = Math.floor(domainFraction);
+  const low = domain[lowIndex];
+  const high = domain[lowIndex + 1];
+  return low + (high - low) * (domainFraction - lowIndex);
+}
+
+function bisectRight(a, x) {
+  let lo = 0;
+  let hi = a.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (ascending(a[mid], x) > 0) {
+      hi = mid;
+    } else {
+      lo = mid + 1;
+    }
+  }
+  return lo;
+}
+
+// return a quantize scale function
+function quantileScale(thresholds, range, value) {
+  return range[bisectRight(thresholds, value)];
+}
+
+export function getQuantileScale(domain, range) {
+  const sortedDomain = domain.sort(ascending);
+  let i = 0;
+  const n = Math.max(1, range.length);
+  const thresholds = new Array(n - 1);
+  while (++i < n) {
+    thresholds[i - 1] = threshold(sortedDomain, i / n);
+  }
+  return value => quantileScale(thresholds, range, value);
+}
