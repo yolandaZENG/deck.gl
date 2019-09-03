@@ -2,9 +2,15 @@
 
 This page contains highlights of each deck.gl release. Also check our [vis.gl blog](https://medium.com/vis-gl) for news about new releases and features in deck.gl.
 
+## deck.gl v7.3
+
+### Transitions
+
+Layers now support transitions for generic props (numbers and arrays). Look for the ![transition-enabled](https://img.shields.io/badge/transition-enabled-green.svg?style=flat-square") badges in layer documentations.
+
 ## deck.gl v7.2
 
-Release Date: Aug XX, 2019
+Release Date: Aug 9, 2019
 
 ### Layer Extensions
 
