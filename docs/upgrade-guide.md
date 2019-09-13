@@ -2,9 +2,21 @@
 
 ## Upgrading from deck.gl v7.2 to v7.3
 
+- Previously deprecated `Layer` class method, `screenToDevicePixels`, is removed. Use luma.gl [utility methods](https://luma.gl/#/documentation/api-reference/webgl-2-classes/device-pixels) instead.
+
+## Upgrading from deck.gl v7.2 to v7.3
+
 #### Deprecations
 
 - `layer.setLayerNeedsUpdate` is renamed to `layer.setNeedsUpdate()` and will be removed in the next major release.
+
+#### deck.gl/json
+
+- Non-breaking Change: The `_JSONConverter` class has been renamed to `JSONConverter` (deprecated alias still available).
+- Non-breaking Change: The `_JSONConverter.convertJson()` method has been renamed to `JSONConverter.convert()`  (deprecated stub still available).
+- Breaking Change: The `_JSONConverter` no longer automatically injects deck.gl `View` classes and enumerations. If reqiured need to import and add these to your `JSONConfiguration`.
+- Removed: The `JSONLayer` is no longer included in this module. The code for this layer has been moved to an example in `/test/apps/json-layer`, and would need to be copied into applications to be used.
+
 
 ## Upgrading from deck.gl v7.1 to v7.2
 

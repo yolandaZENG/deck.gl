@@ -130,6 +130,13 @@ export const examplePages = generatePath([
           demo: 'TripsDemo',
           code: getCodeUrl('examples/website/trips')
         }
+      },
+      {
+        name: 'Tile3DLayer',
+        content: {
+          demo: 'Tiles3DDemo',
+          code: getCodeUrl('examples/website/3d-tiles')
+        }
       }
     ]
   },
@@ -157,6 +164,16 @@ export const examplePages = generatePath([
           demo: 'PlotDemo',
           code: getCodeUrl('examples/website/plot')
         }
+      }
+    ]
+  },
+  {
+    name: 'Declarative Layers',
+    expanded: true,
+    children: [
+      {
+        name: 'Playground',
+        external: 'http://deck.gl/json'
       }
     ]
   }

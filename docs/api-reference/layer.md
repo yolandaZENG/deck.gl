@@ -610,20 +610,6 @@ Returns:
 
 * World coordinates in `[x, y]`.
 
-
-##### `screenToDevicePixels`
-
-Simply multiplies `pixels` parameter with `window.devicePixelRatio` if available. Useful to adjust e.g. line widths to get more consistent visuals between low and high resolution displays.
-
-Parameters:
-
-* `pixels` (Number) - The number in screen pixels.
-
-Returns:
-
-* A number in device pixels
-
-
 ### Layer Picking Methods
 
 For the usage of these methods, see [how picking works](/docs/developer-guide/custom-layers/picking.md).
@@ -643,7 +629,7 @@ Returns:
 
 Note:
 
-* The null picking color is returned when a pixel is picked that is not covered by the layer, or when they layer has selected to render a pixel using the null picking color to make it unpickable.
+* The null picking color is returned when a pixel is picked that is not covered by the layer, or when the layer has selected to render a pixel using the null picking color to make it unpickable.
 
 ##### `encodePickingColor`
 
@@ -668,7 +654,7 @@ Notes:
 
 Returns:
 
-* a "null" picking color which is equal the the color of pixels not covered by the layer. This color is guaranteed not to match any index value greater than or equal to zero.
+* a "null" picking color which is equal the color of pixels not covered by the layer. This color is guaranteed not to match any index value greater than or equal to zero.
 
 ## Source
 
