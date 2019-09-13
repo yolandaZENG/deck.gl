@@ -1,0 +1,29 @@
+{
+  "description": "The deck.gl website tile-3d-layer example",
+  "websiteUrl": "https://deck.gl/#/examples/geo-layers/tile-3d-layer",
+  "initialViewState": {
+    "latitude": 46.26,
+    "longitude": -122,
+    "pitch": 45,
+    "maxPitch": 60,
+    "bearing": 0,
+    "minZoom": 2,
+    "maxZoom": 30,
+    "zoom": 10
+  },
+  "views": [
+    {
+      "type": "MapView",
+      "mapStyle": "mapbox://styles/mapbox/dark-v9",
+      "controller": true
+    }
+  ],
+  "layers": [
+    {
+      "type": "Tile3DLayer",
+      "id": "tiles-st-helens",
+      "ionAssetId": 28957,
+      "ionAccessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiMTBjN2E3Mi03ZGZkLTRhYmItOWEzNC1iOTdjODEzMzM5MzgiLCJpZCI6NDQsImlhdCI6MTQ4NjQ4NDM0M30.B3C7Noey3ZPXcf7_FXBEYwirct23fsUecRnS12FltN8"
+    }
+  ]
+}
