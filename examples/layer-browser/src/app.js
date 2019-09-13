@@ -46,7 +46,7 @@ export default class App extends PureComponent {
 
     this.state = props.state || {
       activeExamples: {
-        PolygonLayer: true
+        WBOITLayer: true
       },
       settings: {
         orthographic: false,

@@ -20,7 +20,17 @@
 
 import {Layer} from '@deck.gl/core';
 import GL from '@luma.gl/constants';
-import {Model, Geometry, hasFeature, FEATURES, PhongMaterial} from '@luma.gl/core';
+import {
+  Model,
+  Geometry,
+  hasFeature,
+  FEATURES,
+  PhongMaterial,
+  Framebuffer,
+  Texture2D,
+  withParameters,
+  Buffer
+} from '@luma.gl/core';
 
 // Polygon geometry generation is managed by the polygon tesselator
 import PolygonTesselator from './polygon-tesselator';
@@ -60,6 +70,30 @@ const ATTRIBUTE_TRANSITION = {
   }
 };
 
+const oitBlendVs = `\
+#version 300 es
+in vec4 positions;
+
+void main() {
+    gl_Position = positions;
+}
+`;
+
+const oitBlendFs = `\
+#version 300 es
+precision highp float;
+uniform sampler2D uAccumulate;
+uniform sampler2D uAccumulateAlpha;
+out vec4 fragColor;
+void main() {
+    ivec2 fragCoord = ivec2(gl_FragCoord.xy);
+    vec4 accum = texelFetch(uAccumulate, fragCoord, 0);
+    float a = 1.0 - accum.a;
+    accum.a = texelFetch(uAccumulateAlpha, fragCoord, 0).r;
+    // fragColor = vec4(a * accum.rgb / clamp(accum.a, 0.001, 100.0), a);
+    fragColor = vec4(accum.rgb, a);
+}
+`;
 export default class SolidPolygonLayer extends Layer {
   getShaders(vs) {
     return super.getShaders({
@@ -178,10 +212,69 @@ export default class SolidPolygonLayer extends Layer {
         }
       }
     });
+
+    const accumulationTexture = new Texture2D(gl, {
+      type: gl.FLOAT,
+      format: gl.RGBA32F,
+      width: gl.drawingBufferWidth,
+      height: gl.drawingBufferHeight,
+      mipmaps: false,
+      parameters: {
+        [GL.TEXTURE_MIN_FILTER]: GL.NEAREST,
+        [GL.TEXTURE_MAG_FILTER]: GL.NEAREST,
+        [GL.TEXTURE_WRAP_S]: GL.CLAMP_TO_EDGE,
+        [GL.TEXTURE_WRAP_T]: GL.CLAMP_TO_EDGE
+      }
+    });
+
+    const revealageTexture = new Texture2D(gl, {
+      type: gl.FLOAT,
+      format: gl.R32F,
+      width: gl.drawingBufferWidth,
+      height: gl.drawingBufferHeight,
+      mipmaps: false,
+      parameters: {
+        [GL.TEXTURE_MIN_FILTER]: GL.NEAREST,
+        [GL.TEXTURE_MAG_FILTER]: GL.NEAREST,
+        [GL.TEXTURE_WRAP_S]: GL.CLAMP_TO_EDGE,
+        [GL.TEXTURE_WRAP_T]: GL.CLAMP_TO_EDGE
+      }
+    });
+
+    const accumulationFramebuffer = new Framebuffer(gl, {
+      width: gl.drawingBufferWidth,
+      height: gl.drawingBufferHeight,
+      attachments: {
+        [GL.COLOR_ATTACHMENT0]: accumulationTexture,
+        [GL.COLOR_ATTACHMENT1]: revealageTexture,
+        [GL.DEPTH_ATTACHMENT]: new Texture2D(gl, {
+          format: GL.DEPTH_COMPONENT32F,
+          type: GL.FLOAT,
+          dataFormat: GL.DEPTH_COMPONENT,
+          width: gl.drawingBufferWidth,
+          height: gl.drawingBufferHeight,
+          mipmaps: false,
+          parameters: {
+            [GL.TEXTURE_MIN_FILTER]: GL.NEAREST,
+            [GL.TEXTURE_MAG_FILTER]: GL.NEAREST,
+            [GL.TEXTURE_WRAP_S]: GL.CLAMP_TO_EDGE,
+            [GL.TEXTURE_WRAP_T]: GL.CLAMP_TO_EDGE
+          }
+        })
+      }
+    });
+
+    this.setState({
+      accumulationTexture,
+      revealageTexture,
+      accumulationFramebuffer
+    });
+
     /* eslint-enable max-len */
   }
 
   draw({uniforms}) {
+    const {gl} = this.context;
     const {extruded, filled, wireframe, elevationScale} = this.props;
     const {topModel, sideModel, polygonTesselator} = this.state;
 
@@ -190,24 +283,51 @@ export default class SolidPolygonLayer extends Layer {
       elevationScale
     });
 
-    // Note: the order is important
-    if (sideModel) {
-      sideModel.setInstanceCount(polygonTesselator.instanceCount - 1);
-      sideModel.setUniforms(renderUniforms);
-      if (wireframe) {
-        sideModel.setDrawMode(GL.LINE_STRIP);
-        sideModel.setUniforms({isWireframe: true}).draw();
-      }
-      if (filled) {
-        sideModel.setDrawMode(GL.TRIANGLE_FAN);
-        sideModel.setUniforms({isWireframe: false}).draw();
-      }
-    }
+    this.state.accumulationFramebuffer.clear({color: [0, 0, 0, 1], depth: 1});
 
-    if (topModel) {
-      topModel.setVertexCount(polygonTesselator.get('indices').length);
-      topModel.setUniforms(renderUniforms).draw();
-    }
+    withParameters(
+      gl,
+      {
+        blendFunc: [gl.ONE, gl.ONE, gl.ZERO, gl.ONE_MINUS_SRC_ALPHA],
+        blend: true,
+        depthMask: false,
+        cull: false,
+        framebuffer: this.state.accumulationFramebuffer
+      },
+      () => {
+        // Note: the order is important
+        if (sideModel) {
+          sideModel.setInstanceCount(polygonTesselator.instanceCount - 1);
+          sideModel.setUniforms(renderUniforms);
+          if (wireframe) {
+            sideModel.setDrawMode(GL.LINE_STRIP);
+            sideModel.setUniforms({isWireframe: true}).draw();
+          }
+          if (filled) {
+            sideModel.setDrawMode(GL.TRIANGLE_FAN);
+            sideModel.setUniforms({isWireframe: false}).draw();
+          }
+        }
+
+        if (topModel) {
+          topModel.setVertexCount(polygonTesselator.get('indices').length);
+          topModel.setUniforms(renderUniforms).draw();
+        }
+      }
+    );
+
+    withParameters(
+      gl,
+      {
+        blendFunc: [gl.ONE, gl.ONE_MINUS_SRC_ALPHA],
+        blend: true,
+        depthTest: false,
+        framebuffer: null
+      },
+      () => {
+        this.state.oitModel.draw();
+      }
+    );
   }
 
   updateState(updateParams) {
@@ -316,6 +436,22 @@ export default class SolidPolygonLayer extends Layer {
 
       sideModel.userData.excludeAttributes = {indices: true};
     }
+
+    const oitModel = new Model(gl, {
+      vs: oitBlendVs,
+      fs: oitBlendFs,
+      drawMode: GL.TRIANGLE_STRIP,
+      attributes: {
+        positions: [new Buffer(gl, new Float32Array([-1, 1, -1, -1, 1, 1, 1, -1])), {size: 2}]
+      },
+      vertexCount: 4,
+      uniforms: {
+        uAccumulate: this.state.accumulationTexture,
+        uAccumulateAlpha: this.state.revealageTexture
+      }
+    });
+
+    this.setState({oitModel});
 
     return {
       models: [sideModel, topModel].filter(Boolean),
