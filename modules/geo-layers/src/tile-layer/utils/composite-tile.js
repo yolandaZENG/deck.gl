@@ -1,23 +1,20 @@
+import FeatureManager from './FeatureManager';
 export default class CompositeTile {
   constructor({tileset = [], zoomLevel}) {
     this.tileset = tileset;
     this.zoomLevel = zoomLevel;
 
-    this.data = [];
-    this.combinedData = [];
+    this._featureManager = new FeatureManager('cartodb_id');
 
-    // Remember to refresh aggregation when any tile loads its data
     this.waitForDataInTiles(this.tileset);
-    // Perform aggregation
-    // this.combineTiles();
   }
 
   getData() {
-    if (this.data.length) {
-      return this.data.flat();
+    if (this._featureManager.hasFeatures()) {
+      return this._featureManager.getData();
     }
 
-    return Promise.all(this.tileset.map(tile => tile.data)).then(allData => allData.flat());
+    return Promise.all(this.tileset.map(tile => tile.data)).then(() => this._featureManager.getData());
   }
 
   waitForDataInTiles(pendingTiles) {
@@ -26,12 +23,12 @@ export default class CompositeTile {
       const dataStillPending = Boolean(tileData.then);
 
       if (!dataStillPending) {
-        this.data.push(tileData);
+        this._featureManager.add(tileData);
         return;
       }
 
       tileData.then(loadedData => {
-        this.data.push(loadedData);
+        this._featureManager.add(loadedData);
       });
     });
   }
