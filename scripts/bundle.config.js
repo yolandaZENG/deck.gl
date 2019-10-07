@@ -9,6 +9,8 @@ const ALIASES = require('ocular-dev-tools/config/ocular.config')({
 const PACKAGE_ROOT = resolve('.');
 const PACKAGE_INFO = require(resolve(PACKAGE_ROOT, 'package.json'));
 
+const WorkerPlugin = require('worker-plugin');
+
 /**
  * peerDependencies are excluded using `externals`
  * https://webpack.js.org/configuration/externals/
@@ -46,7 +48,7 @@ function getExternals(packageInfo) {
 }
 
 const config = {
-  mode: 'production',
+  mode: 'development',
 
   entry: {
     main: resolve('./bundle')
@@ -92,9 +94,11 @@ const config = {
     // This is called in prepublishOnly, after lerna bumps the package versions
     new webpack.DefinePlugin({
       __VERSION__: JSON.stringify(PACKAGE_INFO.version)
-    })
+    }),
     // Uncomment for bundle size debug
-    // ,new (require('webpack-bundle-analyzer').BundleAnalyzerPlugin)()
+    // ,new (require('webpack-bundle-analyzer').BundleAnalyzerPlugin)(),
+
+    new WorkerPlugin()
   ],
 
   node: {
