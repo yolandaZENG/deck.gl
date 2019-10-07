@@ -131,7 +131,8 @@ export {
   PolygonLayer,
   SolidPolygonLayer,
   GeoJsonLayer,
-  TextLayer
+  TextLayer,
+  MVTTileLayer
 } from '@deck.gl/layers';
 
 export {
