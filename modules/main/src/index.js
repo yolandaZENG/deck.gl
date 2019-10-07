@@ -131,8 +131,7 @@ export {
   PolygonLayer,
   SolidPolygonLayer,
   GeoJsonLayer,
-  TextLayer,
-  MVTTileLayer
+  TextLayer
 } from '@deck.gl/layers';
 
 export {
@@ -153,7 +152,8 @@ export {
   H3HexagonLayer,
   TileLayer,
   TripsLayer,
-  Tile3DLayer
+  Tile3DLayer,
+  MVTTileLayer
 } from '@deck.gl/geo-layers';
 
 export {SimpleMeshLayer, ScenegraphLayer} from '@deck.gl/mesh-layers';
