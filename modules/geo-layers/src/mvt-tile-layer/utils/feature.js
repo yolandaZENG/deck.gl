@@ -19,13 +19,19 @@ export default class Feature {
     this._geometryCoordinates = coordinates;
   }
 
-  _mergeGeometries(geometry) {
+  _mergeGeometries(newGeometry) {
     const thisGeometry = {
       type: this._geometryType,
       coordinates: this._geometryCoordinates
     };
 
-    return mergeStrategies[this._geometryType](thisGeometry, geometry);
+    const mergeStrategy = mergeStrategies[this._geometryType][newGeometry.type];
+
+    if (!mergeStrategy) {
+      throw new Error(`Merge ${this._geometryType} with ${newGeometry.type} strategy is not implemented`);
+    }
+
+    return mergeStrategy(thisGeometry, newGeometry);
   }
 
   toGeoJSON() {
