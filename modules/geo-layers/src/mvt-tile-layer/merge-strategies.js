@@ -1,38 +1,69 @@
 import polygonUnion from '@turf/union';
 
-const mergePolygons = function mergePolygons(originalGeometry, newGeometry) {
-  if (newGeometry.type === 'MultiPolygon') {
-    let mergedGeometry = originalGeometry;
+const mergePoint = function mergePoint(originalGeometry) {
+  return originalGeometry
+};
 
-    for (const coords in newGeometry.coordinates) {
-      mergedGeometry = polygonUnion(mergedGeometry, {
-        coordinates: [newGeometry.coordinates[coords]]
-      }).geometry;
-    }
+const mergeLine = function mergeLine(originalGeometry) {
+  return originalGeometry
+};
 
-    return mergedGeometry;
-  }
+const mergeMultiLineStringWithLine = function mergeMultiLineStringWithLine(multiLineString, lineString) {
+  return {
+    type: 'MultiLineString',
+    coordinates: [
+      ...multiLineString.coordinates,
+      ...lineString.coordinates
+    ]
+  };
+};
 
+const mergeMultiLineStringWithMultiLineString = function mergeMultiLineStringWithMultiLineString(originalGeometry, newGeometry) {
+  return {
+    type: 'MultiLineString',
+    coordinates: [
+      ...originalGeometry.coordinates,
+      ...newGeometry.coordinates
+    ]
+  };
+};
+
+const mergePolygonWithPolygon = function mergePolygonWithPolygon(originalGeometry, newGeometry) {
   return polygonUnion(originalGeometry, newGeometry).geometry;
 };
 
-const mergeMultiPolygon = function mergeMultiPolygon(originalGeometry, newGeometry) {
-  if (newGeometry.type === 'MultiPolygon') {
-    originalGeometry.coordinates.push(...newGeometry.coordinates);
-    return originalGeometry;
+const mergePolygonWithMultiPolygon = function mergePolygonWithMultiPolygon(originalGeometry, newGeometry) {
+  let mergedGeometry = originalGeometry;
+
+  for (const coords in newGeometry.coordinates) {
+    mergedGeometry = polygonUnion(mergedGeometry, {
+      coordinates: [newGeometry.coordinates[coords]]
+    }).geometry;
   }
 
-  let mergedGeometry = originalGeometry;
-  for (const coords in newGeometry.coordinates) {
-    mergedGeometry = polygonUnion(mergedGeometry, {coordinates: [newGeometry.coordinates[coords]]})
-      .geometry;
-  }
   return mergedGeometry;
 };
 
 const mergeStrategies = {
-  Polygon: mergePolygons,
-  MultiPolygon: mergeMultiPolygon
+  Point: {
+    Point: mergePoint
+  },
+  LineString: {
+    LineString: mergeLine,
+    MultiLineString: (lineString, multiLineString) => mergeMultiLineStringWithLine(multiLineString, lineString)
+  },
+  MultiLineString: {
+    LineString: mergeMultiLineStringWithLine,
+    MultiLineString: mergeMultiLineStringWithMultiLineString
+  },
+  Polygon: {
+    Polygon: mergePolygonWithPolygon,
+    MultiPolygon: mergePolygonWithMultiPolygon
+  },
+  MultiPolygon: {
+    Polygon: mergePolygonWithMultiPolygon,
+    MultiPolygon: mergePolygonWithPolygon
+  }
 };
 
 export default mergeStrategies;

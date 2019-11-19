@@ -103,7 +103,8 @@ export default class MVTTileLayer extends TileLayer {
       Object.assign({}, this.props, {
         id: `${this.id}-${this.state.tiles.zoomLevel}`,
         visible: visible && (!this.state.isLoaded || this.state.tiles.zoomLevel === z),
-        data
+        data,
+        tile: this.state.tiles
       })
     );
   }
