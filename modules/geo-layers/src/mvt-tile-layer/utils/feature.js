@@ -28,7 +28,9 @@ export default class Feature {
     const mergeStrategy = mergeStrategies[this._geometryType][newGeometry.type];
 
     if (!mergeStrategy) {
-      throw new Error(`Merge ${this._geometryType} with ${newGeometry.type} strategy is not implemented`);
+      throw new Error(
+        `Merge ${this._geometryType} with ${newGeometry.type} strategy is not implemented`
+      );
     }
 
     return mergeStrategy(thisGeometry, newGeometry);
