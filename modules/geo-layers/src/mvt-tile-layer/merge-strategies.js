@@ -1,30 +1,30 @@
 import polygonUnion from '@turf/union';
 
 const mergePoint = function mergePoint(originalGeometry) {
-  return originalGeometry
+  return originalGeometry;
 };
 
 const mergeLine = function mergeLine(originalGeometry) {
-  return originalGeometry
+  return originalGeometry;
 };
 
-const mergeMultiLineStringWithLine = function mergeMultiLineStringWithLine(multiLineString, lineString) {
+const mergeMultiLineStringWithLine = function mergeMultiLineStringWithLine(
+  multiLineString,
+  lineString
+) {
   return {
     type: 'MultiLineString',
-    coordinates: [
-      ...multiLineString.coordinates,
-      ...lineString.coordinates
-    ]
+    coordinates: [...multiLineString.coordinates, ...lineString.coordinates]
   };
 };
 
-const mergeMultiLineStringWithMultiLineString = function mergeMultiLineStringWithMultiLineString(originalGeometry, newGeometry) {
+const mergeMultiLineStringWithMultiLineString = function mergeMultiLineStringWithMultiLineString(
+  originalGeometry,
+  newGeometry
+) {
   return {
     type: 'MultiLineString',
-    coordinates: [
-      ...originalGeometry.coordinates,
-      ...newGeometry.coordinates
-    ]
+    coordinates: [...originalGeometry.coordinates, ...newGeometry.coordinates]
   };
 };
 
@@ -32,7 +32,10 @@ const mergePolygonWithPolygon = function mergePolygonWithPolygon(originalGeometr
   return polygonUnion(originalGeometry, newGeometry).geometry;
 };
 
-const mergePolygonWithMultiPolygon = function mergePolygonWithMultiPolygon(originalGeometry, newGeometry) {
+const mergePolygonWithMultiPolygon = function mergePolygonWithMultiPolygon(
+  originalGeometry,
+  newGeometry
+) {
   let mergedGeometry = originalGeometry;
 
   for (const coords in newGeometry.coordinates) {
@@ -50,7 +53,8 @@ const mergeStrategies = {
   },
   LineString: {
     LineString: mergeLine,
-    MultiLineString: (lineString, multiLineString) => mergeMultiLineStringWithLine(multiLineString, lineString)
+    MultiLineString: (lineString, multiLineString) =>
+      mergeMultiLineStringWithLine(multiLineString, lineString)
   },
   MultiLineString: {
     LineString: mergeMultiLineStringWithLine,
