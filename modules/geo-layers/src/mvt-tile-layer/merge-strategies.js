@@ -4,8 +4,11 @@ const mergePoint = function mergePoint(originalGeometry) {
   return originalGeometry;
 };
 
-const mergeLine = function mergeLine(originalGeometry) {
-  return originalGeometry;
+const mergeLine = function mergeLine(originalGeometry, newGeometry) {
+  return {
+    type: 'MultiLineString',
+    coordinates: [originalGeometry.coordinates, newGeometry.coordinates]
+  };
 };
 
 const mergeMultiLineStringWithLine = function mergeMultiLineStringWithLine(
@@ -14,7 +17,7 @@ const mergeMultiLineStringWithLine = function mergeMultiLineStringWithLine(
 ) {
   return {
     type: 'MultiLineString',
-    coordinates: [...multiLineString.coordinates, ...lineString.coordinates]
+    coordinates: [...multiLineString.coordinates, lineString.coordinates]
   };
 };
 
