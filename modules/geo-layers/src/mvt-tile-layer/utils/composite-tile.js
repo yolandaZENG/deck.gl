@@ -17,7 +17,12 @@ export default class CompositeTile {
       return this._featureManager.getData();
     }
 
-    return Promise.all(this.tileset.map(tile => tile.data)).then(allData => allData.flat());
+    const visibleTiles = this.tileset.filter(tile => tile.isVisible);
+    return Promise.all(visibleTiles.map(tile => tile.data)).then(allData => allData.flat());
+  }
+
+  getZoomLevel() {
+    return this.zoomLevel;
   }
 
   waitForDataInTiles(pendingTiles) {
