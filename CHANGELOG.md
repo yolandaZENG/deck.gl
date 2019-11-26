@@ -19,7 +19,47 @@ Ref: http://keepachangelog.com/en/0.3.0/
 
 ## deck.gl v7.3
 
+#### deck.gl [v7.3.6] - Nov 11 2019
+
+- Bump loaders.gl dependencies (#3862)
+
+#### deck.gl [v7.3.5] - Nov 8 2019
+
+- Fix texture crash in Safari (#3848)
+- Fix: custom controller events (#3857)
+- Fix attribute allocation bug when using partial update with double precision (#3854)
+- Fix IconLayer autopacking bug (#3847)
+
+#### deck.gl [v7.3.4] - Nov 4 2019
+
+- TileLayer: only invalidate tile.layer when updateTriggerChanged (#3823)
+- HeatmapLayer: fix sublayer id (#3813)
+
+#### deck.gl [v7.3.3] - Oct 15 2019
+
+- TileLayer: Invalidate cache when updateTriggers changed (#3788)
+- Bump luma.gl to 7.3.2
+
+#### deck.gl [v7.3.2] - Oct 3 2019
+
+- GridLayer: enforce point size to workaround ANGLE bug (#3738)
+- Bump luma.gl to 7.3.1
+- HeatmapLayer: set point size to address ANGLE bug (#3732)
+- TileLayer: cache rendered sub layers (#3730)
+- Bump pydeck to 0.1.dev5 (#3715
+
+#### deck.gl [v7.3.1] - Sep 30 2019
+
+- Clamp HeatmapLayer colorDomain on iOS (#3723)
+
+#### deck.gl [v7.3.0] - Sep 30 2019
+
 ### deck.gl v7.3 Prereleases
+
+#### deck.gl [v7.3.0-beta.9] - Sep 27 2019
+
+- HeatmapLayer: Add 'colorDomain' prop (#3714)
+- Bump luma to prod version (#3712)
 
 #### deck.gl [v7.3.0-beta.8] - Sep 26 2019
 
@@ -199,6 +239,14 @@ Ref: http://keepachangelog.com/en/0.3.0/
 - Website reference ES5 transpiled version of supercluster depend… (#3427)
 
 ## deck.gl v7.2
+
+#### deck.gl [v7.2.6] - Sep 20, 2019
+
+- More picking bug fix (#3667)
+
+#### deck.gl [v7.2.5] - Sep 19, 2019
+
+- Fix multi-picking bug (#3652)
 
 #### deck.gl [v7.2.4] - Sep 13, 2019
 

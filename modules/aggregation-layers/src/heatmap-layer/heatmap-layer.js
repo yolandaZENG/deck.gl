@@ -57,6 +57,7 @@ const TEXTURE_OPTIONS = {
   },
   dataFormat: GL.RGBA
 };
+const DEFAULT_COLOR_DOMAIN = [0, 0];
 
 const defaultProps = {
   getPosition: {type: 'accessor', value: x => x.position},
@@ -64,7 +65,8 @@ const defaultProps = {
   intensity: {type: 'number', min: 0, value: 1},
   radiusPixels: {type: 'number', min: 1, max: 100, value: 30},
   colorRange: defaultColorRange,
-  threshold: {type: 'number', min: 0, max: 1, value: 0.05}
+  threshold: {type: 'number', min: 0, max: 1, value: 0.05},
+  colorDomain: {type: 'array', value: null, optional: true}
 };
 
 const REQUIRED_FEATURES = [
@@ -92,6 +94,7 @@ export default class HeatmapLayer extends CompositeLayer {
     return changeFlags.somethingChanged;
   }
 
+  /* eslint-disable complexity */
   updateState(opts) {
     if (!this.state.supported) {
       return;
@@ -118,8 +121,26 @@ export default class HeatmapLayer extends CompositeLayer {
       this._updateTextureRenderingBounds();
     }
 
+    if (oldProps.colorDomain !== props.colorDomain || changeFlags.viewportChanged) {
+      const {viewport} = this.context;
+      const {weightsScale} = this.state;
+      const domainScale = (viewport ? 1024 / viewport.scale : 1) * weightsScale;
+      const colorDomain = props.colorDomain
+        ? props.colorDomain.map(x => x * domainScale)
+        : DEFAULT_COLOR_DOMAIN;
+      if (colorDomain[1] > 0 && weightsScale < 1) {
+        // Hack - when low precision texture is used, aggregated weights are in the [0, 1]
+        // range. Scale colorDomain to fit.
+        const max = Math.min(colorDomain[1], 1);
+        colorDomain[0] *= max / colorDomain[1];
+        colorDomain[1] = max;
+      }
+      this.setState({colorDomain});
+    }
+
     this.setState({zoom: opts.context.viewport.zoom});
   }
+  /* eslint-enable complexity */
 
   renderLayers() {
     if (!this.state.supported) {
@@ -130,17 +151,17 @@ export default class HeatmapLayer extends CompositeLayer {
       triPositionBuffer,
       triTexCoordBuffer,
       maxWeightsTexture,
-      colorTexture
+      colorTexture,
+      colorDomain
     } = this.state;
     const {updateTriggers, intensity, threshold} = this.props;
 
     return new TriangleLayer(
       this.getSubLayerProps({
-        id: `${this.id}-triangle-layer`,
+        id: 'triangle-layer',
         updateTriggers
       }),
       {
-        id: 'heatmap-triangle-layer',
         data: {
           attributes: {
             positions: triPositionBuffer,
@@ -152,7 +173,8 @@ export default class HeatmapLayer extends CompositeLayer {
         colorTexture,
         texture: weightsTexture,
         intensity,
-        threshold
+        threshold,
+        colorDomain
       }
     );
   }
