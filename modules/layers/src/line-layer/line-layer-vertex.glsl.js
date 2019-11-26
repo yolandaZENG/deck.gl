@@ -24,8 +24,8 @@ export default `\
 attribute vec3 positions;
 attribute vec3 instanceSourcePositions;
 attribute vec3 instanceTargetPositions;
-attribute vec2 instanceSourcePositions64xyLow;
-attribute vec2 instanceTargetPositions64xyLow;
+attribute vec3 instanceSourcePositions64Low;
+attribute vec3 instanceTargetPositions64Low;
 attribute vec4 instanceColors;
 attribute vec3 instancePickingColors;
 attribute float instanceWidths;
@@ -56,8 +56,8 @@ void main(void) {
   // Position
   vec4 source_commonspace;
   vec4 target_commonspace;
-  vec4 source = project_position_to_clipspace(instanceSourcePositions, instanceSourcePositions64xyLow, vec3(0.), source_commonspace);
-  vec4 target = project_position_to_clipspace(instanceTargetPositions, instanceTargetPositions64xyLow, vec3(0.), target_commonspace);
+  vec4 source = project_position_to_clipspace(instanceSourcePositions, instanceSourcePositions64Low, vec3(0.), source_commonspace);
+  vec4 target = project_position_to_clipspace(instanceTargetPositions, instanceTargetPositions64Low, vec3(0.), target_commonspace);
 
   // Multiply out width and clamp to limits
   float widthPixels = clamp(
@@ -71,6 +71,7 @@ void main(void) {
   geometry.position = mix(source_commonspace, target_commonspace, segmentIndex);
   uv = positions.xy;
   geometry.uv = uv;
+  geometry.pickingColor = instancePickingColors;
 
   // extrude
   vec3 offset = vec3(
@@ -83,8 +84,5 @@ void main(void) {
   // Color
   vColor = vec4(instanceColors.rgb, instanceColors.a * opacity);
   DECKGL_FILTER_COLOR(vColor, geometry);
-
-  // Set color to be rendered to picking fbo (also used to check for selection highlight).
-  picking_setPickingColor(instancePickingColors);
 }
 `;

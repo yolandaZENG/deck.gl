@@ -17,7 +17,7 @@ import {
   AmbientLight,
   DirectionalLight
 } from '@deck.gl/core';
-import {noise, vignette} from '@luma.gl/effects';
+import {noise, vignette} from '@luma.gl/engine';
 
 import {Fp64Extension} from '@deck.gl/extensions';
 
@@ -70,7 +70,6 @@ const GRID_LAYER_INFO = {
   props: {
     data: dataSamples.points,
     cellSize: 200,
-    opacity: 1,
     extruded: true,
     pickable: true,
     getPosition: d => d.COORDINATES
@@ -91,13 +90,14 @@ const HEXAGON_LAYER_INFO = {
     extruded: true,
     pickable: true,
     radius: 1000,
-    opacity: 1,
     elevationScale: 1,
     elevationRange: [0, 3000],
     coverage: 1,
     getPosition: d => d.COORDINATES
   }
 };
+
+const POINTCLOUD = dataSamples.getPointCloud();
 
 function getMean(pts, key) {
   const filtered = pts.filter(pt => Number.isFinite(pt[key]));
@@ -175,6 +175,7 @@ export const TEST_CASES = [
       new GeoJsonLayer({
         id: 'geojson-lnglat',
         data: dataSamples.geojson,
+        opacity: 0.8,
         getRadius: f => MARKER_SIZE_MAP[f.properties['marker-size']],
         getFillColor: f => parseColor(f.properties.fill || f.properties['marker-color']),
         getLineColor: f => parseColor(f.properties.stroke),
@@ -224,6 +225,7 @@ export const TEST_CASES = [
       new PointCloudLayer({
         id: 'pointcloud-identity',
         data: [{position: [0, 100, 0]}, {position: [-100, -100, 0]}, {position: [100, -100, 0]}],
+        opacity: 0.8,
         coordinateSystem: COORDINATE_SYSTEM.IDENTITY,
         getPosition: d => d.position,
         getNormal: d => [0, 0.5, 0.2],
@@ -247,6 +249,7 @@ export const TEST_CASES = [
         id: 'screengrid-infoviz',
         data: screenSpaceData,
         coordinateSystem: COORDINATE_SYSTEM.IDENTITY,
+        opacity: 0.8,
         getPosition: d => d,
         cellSizePixels: 40,
         pickable: false
@@ -271,7 +274,6 @@ export const TEST_CASES = [
         getPosition: d => d,
         coordinateSystem: COORDINATE_SYSTEM.IDENTITY,
         cellSize: 40,
-        opacity: 1,
         contours: [
           {threshold: 1, color: [50, 50, 50]},
           {threshold: 2, color: [100, 100, 100]},
@@ -298,7 +300,6 @@ export const TEST_CASES = [
         getPosition: d => d,
         coordinateSystem: COORDINATE_SYSTEM.IDENTITY,
         cellSize: 40,
-        opacity: 1,
         contours: [
           {threshold: [1, 2], color: [150, 0, 0]},
           {threshold: [2, 5], color: [0, 150, 0]}
@@ -349,6 +350,7 @@ export const TEST_CASES = [
       new PolygonLayer({
         id: 'polygon-lnglat-64',
         data: dataSamples.polygons,
+        coordinateSystem: COORDINATE_SYSTEM.LNGLAT_DEPRECATED,
         getPolygon: f => f,
         getFillColor: [200, 0, 0],
         getLineColor: [0, 0, 0],
@@ -357,7 +359,8 @@ export const TEST_CASES = [
         opacity: 0.8,
         pickable: true,
         lineWidthMinPixels: 1,
-        lineDashJustified: true
+        lineDashJustified: true,
+        extensions: [new Fp64Extension()]
       })
     ],
     goldenImage: './test/render/golden-images/polygon-lnglat.png'
@@ -381,6 +384,47 @@ export const TEST_CASES = [
         getWidth: f => 100,
         widthMinPixels: 1,
         pickable: true
+      })
+    ],
+    goldenImage: './test/render/golden-images/path-lnglat.png'
+  },
+  {
+    name: 'path-lnglat-binary',
+    viewState: {
+      latitude: 37.751537058389985,
+      longitude: -122.42694203247012,
+      zoom: 11.5,
+      pitch: 0,
+      bearing: 0
+    },
+    layers: [
+      new PathLayer({
+        id: 'path-lnglat',
+        data: {
+          length: dataSamples.zigzag.length,
+          startIndices: dataSamples.zigzag.reduce(
+            (acc, d) => {
+              acc.push(acc[acc.length - 1] + d.path.length);
+              return acc;
+            },
+            [0]
+          ),
+          attributes: {
+            getPath: {
+              value: new Float64Array(dataSamples.zigzag.flatMap(d => d.path.flat())),
+              size: 2
+            },
+            getColor: {
+              value: new Uint8Array(
+                dataSamples.zigzag.flatMap(d => d.path.flatMap(p => [128, 0, 0]))
+              ),
+              size: 3
+            }
+          }
+        },
+        getWidth: 100,
+        opacity: 0.6,
+        widthMinPixels: 1
       })
     ],
     goldenImage: './test/render/golden-images/path-lnglat.png'
@@ -423,7 +467,6 @@ export const TEST_CASES = [
         getPosition: d => d.COORDINATES,
         getFillColor: d => [255, 128, 0],
         getRadius: d => d.SPACES,
-        opacity: 1,
         pickable: true,
         radiusScale: 30,
         radiusMinPixels: 1,
@@ -449,7 +492,6 @@ export const TEST_CASES = [
         getPosition: d => d.COORDINATES,
         getFillColor: d => [255, 128, 0],
         getRadius: d => d.SPACES,
-        opacity: 1,
         pickable: true,
         radiusScale: 30,
         radiusMinPixels: 1,
@@ -472,15 +514,49 @@ export const TEST_CASES = [
       new ArcLayer({
         id: 'arc-lnglat',
         data: dataSamples.routes,
-        strokeWidth: 2,
+        opacity: 0.8,
+        getWidth: 2,
         getSourcePosition: d => d.START,
         getTargetPosition: d => d.END,
         getSourceColor: d => [64, 255, 0],
-        getTargetColor: d => [0, 128, 200],
-        pickable: true
+        getTargetColor: d => [0, 128, 200]
       })
     ],
     goldenImage: './test/render/golden-images/arc-lnglat.png',
+    imageDiffOptions: !IS_HEADLESS && {
+      threshold: 0.985
+    }
+  },
+  {
+    name: 'arc-lnglat-3d',
+    viewState: {
+      latitude: 37.788,
+      longitude: -122.45,
+      zoom: 13,
+      pitch: 60,
+      bearing: 0
+    },
+    layers: [
+      new ArcLayer({
+        id: 'arc-lnglat-3d',
+        data: [
+          {source: [-122.46, 37.77, -150], target: [-122.44, 37.77, 450], height: 0.5},
+          {source: [-122.46, 37.77, -150], target: [-122.44, 37.77, 450], height: 1},
+          {source: [-122.46, 37.77, -150], target: [-122.44, 37.77, 450], height: 2},
+          {source: [-122.46, 37.78, 600], target: [-122.44, 37.78, 0], height: 0.5},
+          {source: [-122.46, 37.78, 600], target: [-122.44, 37.78, 0], height: 1},
+          {source: [-122.46, 37.78, 600], target: [-122.44, 37.78, 0], height: 2}
+        ],
+        opacity: 0.8,
+        getWidth: 4,
+        getSourcePosition: d => d.source,
+        getTargetPosition: d => d.target,
+        getHeight: d => d.height,
+        getSourceColor: d => [255, 255, 0],
+        getTargetColor: d => [255, 0, 0]
+      })
+    ],
+    goldenImage: './test/render/golden-images/arc-lnglat-3d.png',
     imageDiffOptions: !IS_HEADLESS && {
       threshold: 0.985
     }
@@ -498,6 +574,7 @@ export const TEST_CASES = [
       new LineLayer({
         id: 'line-lnglat',
         data: dataSamples.routes,
+        opacity: 0.8,
         getWidth: 0,
         widthMinPixels: 2,
         getSourcePosition: d => d.START,
@@ -518,7 +595,6 @@ export const TEST_CASES = [
       bearing: 0
     },
     // rendering times
-    renderingTimes: 2,
     layers: [
       new IconLayer({
         id: 'icon-lnglat',
@@ -542,6 +618,50 @@ export const TEST_CASES = [
     goldenImage: './test/render/golden-images/icon-lnglat.png'
   },
   {
+    name: 'icon-lnglat-external-buffer',
+    viewState: {
+      latitude: 37.751537058389985,
+      longitude: -122.42694203247012,
+      zoom: 11.5,
+      pitch: 0,
+      bearing: 0
+    },
+    // rendering times
+    layers: [
+      new IconLayer({
+        id: 'icon-lnglat',
+        data: {
+          length: dataSamples.points.length,
+          attributes: {
+            getPosition: {
+              value: new Float32Array(dataSamples.points.flatMap(d => d.COORDINATES)),
+              size: 2
+            },
+            getSize: new Float32Array(dataSamples.points.flatMap(d => (d.RACKS > 2 ? 2 : 1))),
+            getIcon: {
+              value: new Uint8Array(
+                dataSamples.points.flatMap(d => (d.PLACEMENT === 'SW' ? 1 : 2))
+              ),
+              size: 1
+            }
+          }
+        },
+        iconAtlas: ICON_ATLAS,
+        iconMapping: {1: dataSamples.iconAtlas.marker, 2: dataSamples.iconAtlas['marker-warning']},
+        sizeScale: 12,
+        getColor: [64, 64, 72],
+        opacity: 0.8,
+        pickable: true
+      })
+    ],
+    onAfterRender: ({layers, done}) => {
+      if (layers[0].state.iconManager.getTexture()) {
+        done();
+      }
+    },
+    goldenImage: './test/render/golden-images/icon-lnglat.png'
+  },
+  {
     name: 'icon-lnglat-facing-up',
     viewState: {
       latitude: 37.751537058389985,
@@ -550,8 +670,6 @@ export const TEST_CASES = [
       pitch: 60,
       bearing: 0
     },
-    // rendering times
-    renderingTimes: 2,
     layers: [
       new IconLayer({
         id: 'icon-lnglat',
@@ -627,6 +745,7 @@ export const TEST_CASES = [
       new IconLayer({
         id: 'icon-lnglat-auto',
         data: dataSamples.points,
+        opacity: 0.8,
         updateTriggers: {
           getIcon: 2
         },
@@ -703,6 +822,7 @@ export const TEST_CASES = [
       new GeoJsonLayer({
         id: 'geojson-lnglat',
         data: dataSamples.geojson,
+        opacity: 0.8,
         getRadius: f => MARKER_SIZE_MAP[f.properties['marker-size']],
         getFillColor: f => {
           const color = parseColor(f.properties.fill || f.properties['marker-color']);
@@ -736,6 +856,7 @@ export const TEST_CASES = [
       new GeoJsonLayer({
         id: 'geojson-extruded-lnglat',
         data: dataSamples.geojson,
+        opacity: 0.8,
         extruded: true,
         wireframe: true,
         getRadius: f => MARKER_SIZE_MAP[f.properties['marker-size']],
@@ -774,12 +895,41 @@ export const TEST_CASES = [
         cellSize: dataSamples.worldGrid.cellSize,
         extruded: true,
         pickable: true,
-        opacity: 1,
         getFillColor: g => [245, 166, g.value * 255, 255],
         getElevation: h => h.value * 5000
       })
     ],
     goldenImage: './test/render/golden-images/gridcell-lnglat.png'
+  },
+  {
+    name: 'cpu-grid-layer:quantile',
+    viewState: GRID_LAYER_INFO.viewState,
+    layers: [
+      new CPUGridLayer(
+        Object.assign({}, GRID_LAYER_INFO.props, {
+          id: 'cpu-grid-layer:quantile',
+          getColorValue,
+          getElevationValue,
+          colorScaleType: 'quantile'
+        })
+      )
+    ],
+    goldenImage: './test/render/golden-images/cpu-layer-quantile.png'
+  },
+  {
+    name: 'cpu-grid-layer:ordinal',
+    viewState: GRID_LAYER_INFO.viewState,
+    layers: [
+      new CPUGridLayer(
+        Object.assign({}, GRID_LAYER_INFO.props, {
+          id: 'cpu-grid-layer:ordinal',
+          getColorValue,
+          getElevationValue,
+          colorScaleType: 'ordinal'
+        })
+      )
+    ],
+    goldenImage: './test/render/golden-images/cpu-layer-ordinal.png'
   },
   {
     name: 'grid-lnglat',
@@ -858,6 +1008,7 @@ export const TEST_CASES = [
       new ScreenGridLayer({
         id: 'screengrid-lnglat-cpu-aggregation',
         data: dataSamples.points,
+        opacity: 0.8,
         getPosition: d => d.COORDINATES,
         cellSizePixels: 40,
         pickable: false,
@@ -879,6 +1030,7 @@ export const TEST_CASES = [
       new ScreenGridLayer({
         id: 'screengrid-lnglat-colorRange',
         data: dataSamples.points,
+        opacity: 0.8,
         getPosition: d => d.COORDINATES,
         cellSizePixels: 40,
         pickable: false
@@ -905,7 +1057,6 @@ export const TEST_CASES = [
         coverage: 1,
         extruded: true,
         pickable: true,
-        opacity: 1,
         getPosition: h => h.centroid,
         getFillColor: h => [48, 128, h.value * 255, 255],
         getElevation: h => h.value * 5000
@@ -924,7 +1075,7 @@ export const TEST_CASES = [
         dirLight: new DirectionalLight({
           color: [255, 255, 255],
           intensity: 1.0,
-          direction: [-10, -2, -15],
+          direction: [-10, 2, -15],
           _shadow: true
         })
       })
@@ -946,7 +1097,6 @@ export const TEST_CASES = [
         coverage: 1,
         extruded: true,
         pickable: true,
-        opacity: 1,
         shadowEnabled: false,
         getPosition: h => h.centroid,
         getFillColor: h => [48, 128, h.value * 255, 255],
@@ -982,7 +1132,6 @@ export const TEST_CASES = [
         extruded: false,
         stroked: true,
         pickable: true,
-        opacity: 1,
         lineWidthUnits: 'pixels',
         getPosition: h => h.centroid,
         getFillColor: h => [48, 128, h.value * 255, 255],
@@ -1035,6 +1184,7 @@ export const TEST_CASES = [
       new HeatmapLayer({
         id: 'heatmap-lnglat',
         data: dataSamples.points,
+        opacity: 0.8,
         pickable: false,
         getPosition: d => d.COORDINATES,
         radiusPixels: 35,
@@ -1055,13 +1205,12 @@ export const TEST_CASES = [
     layers: [
       new PointCloudLayer({
         id: 'pointcloud-lnglat',
-        data: dataSamples.getPointCloud(),
+        data: POINTCLOUD,
         coordinateSystem: COORDINATE_SYSTEM.LNGLAT_OFFSETS,
         coordinateOrigin: dataSamples.positionOrigin,
         getPosition: d => [d.position[0] * 1e-5, d.position[1] * 1e-5, d.position[2]],
         getNormal: d => d.normal,
         getColor: d => d.color,
-        opacity: 1,
         pointSize: 2,
         pickable: true
       })
@@ -1080,13 +1229,16 @@ export const TEST_CASES = [
     layers: [
       new PointCloudLayer({
         id: 'pointcloud-meter',
-        data: dataSamples.getPointCloud(),
+        data: {
+          length: POINTCLOUD.length,
+          attributes: {
+            getPosition: new Float32Array(POINTCLOUD.flatMap(d => d.position)),
+            getNormal: new Float32Array(POINTCLOUD.flatMap(d => d.normal)),
+            getColor: {value: new Uint8Array(POINTCLOUD.flatMap(d => d.color)), size: 3}
+          }
+        },
         coordinateSystem: COORDINATE_SYSTEM.METER_OFFSETS,
         coordinateOrigin: dataSamples.positionOrigin,
-        getPosition: d => d.position,
-        getNormal: d => d.normal,
-        getColor: d => d.color,
-        opacity: 1,
         pointSize: 2,
         pickable: true
       })
@@ -1106,12 +1258,10 @@ export const TEST_CASES = [
       new PathLayer({
         id: 'path-meter',
         data: dataSamples.meterPaths,
-        opacity: 1.0,
         getColor: f => [255, 0, 0],
         getWidth: f => 10,
         widthMinPixels: 1,
         pickable: false,
-        strokeWidth: 5,
         widthScale: 100,
         autoHighlight: false,
         highlightColor: [255, 255, 255, 255],
@@ -1137,6 +1287,7 @@ export const TEST_CASES = [
       new TextLayer({
         id: 'text-layer',
         data: dataSamples.points.slice(0, 50),
+        opacity: 0.8,
         fontFamily: 'Arial',
         getText: x => `${x.PLACEMENT}-${x.YR_INSTALLED}`,
         getPosition: x => x.COORDINATES,
@@ -1164,6 +1315,7 @@ export const TEST_CASES = [
       new TextLayer({
         id: 'text-layer',
         data: dataSamples.points.slice(0, 50),
+        opacity: 0.8,
         fontFamily: 'Arial',
         getText: x => `${x.PLACEMENT}-${x.YR_INSTALLED}`,
         getPosition: x => x.COORDINATES,
@@ -1192,6 +1344,7 @@ export const TEST_CASES = [
       new TextLayer({
         id: 'text-layer',
         data: dataSamples.points.slice(0, 10),
+        opacity: 0.8,
         fontFamily: 'Arial',
         getText: x => `${x.PLACEMENT}\n${x.YR_INSTALLED}`,
         getPosition: x => x.COORDINATES,
@@ -1205,6 +1358,36 @@ export const TEST_CASES = [
       })
     ],
     goldenImage: './test/render/golden-images/text-layer-multi-lines.png'
+  },
+  {
+    name: 'text-layer-auto-wrapping',
+    viewState: {
+      latitude: 37.751537058389985,
+      longitude: -122.42694203247012,
+      zoom: 11.5,
+      pitch: 0,
+      bearing: 0
+    },
+    layers: [
+      new TextLayer({
+        id: 'text-layer',
+        data: dataSamples.points.slice(0, 3),
+        opacity: 0.8,
+        fontFamily: 'Arial',
+        wordBreak: 'break-word',
+        width: 1000,
+        getText: x => `${x.LOCATION_NAME}\n${x.ADDRESS}`,
+        getPosition: x => x.COORDINATES,
+        getColor: x => [153, 0, 0],
+        getSize: x => 16,
+        getAngle: x => 0,
+        sizeScale: 1,
+        getTextAnchor: x => 'middle',
+        getAlignmentBaseline: x => 'center',
+        getPixelOffset: x => [10, 0]
+      })
+    ],
+    goldenImage: './test/render/golden-images/text-layer-auto-wrapping.png'
   },
   {
     name: 'gpu-grid-lnglat',
@@ -1246,7 +1429,6 @@ export const TEST_CASES = [
         id: 'contour-lnglat-cpu-aggregation',
         data: dataSamples.points,
         cellSize: 200,
-        opacity: 1,
         getPosition: d => d.COORDINATES,
         contours: [
           {threshold: 1, color: [255, 0, 0], strokeWidth: 6},
@@ -1272,7 +1454,6 @@ export const TEST_CASES = [
         id: 'contour-lnglat',
         data: dataSamples.points,
         cellSize: 200,
-        opacity: 1,
         getPosition: d => d.COORDINATES,
         contours: [
           {threshold: 1, color: [255, 0, 0], strokeWidth: 6},
@@ -1298,7 +1479,6 @@ export const TEST_CASES = [
         id: 'contour-isobands-lnglat',
         data: dataSamples.points,
         cellSize: 200,
-        opacity: 1,
         getPosition: d => d.COORDINATES,
         contours: [
           {threshold: [1, 5], color: [255, 0, 0], strokeWidth: 6},
@@ -1322,6 +1502,7 @@ export const TEST_CASES = [
     layers: [
       new H3HexagonLayer({
         data: h3.kRing('882830829bfffff', 4),
+        opacity: 0.8,
         getHexagon: d => d,
         getFillColor: (d, {index}) => [255, index * 5, 0],
         getElevation: (d, {index}) => index * 100
@@ -1341,6 +1522,7 @@ export const TEST_CASES = [
     layers: [
       new H3HexagonLayer({
         data: h3.kRing('891c0000003ffff', 4),
+        opacity: 0.8,
         getHexagon: d => d,
         getFillColor: (d, {index}) => [255, index * 5, 0],
         getElevation: (d, {index}) => index * 10
@@ -1360,6 +1542,7 @@ export const TEST_CASES = [
     layers: [
       new H3HexagonLayer({
         data: h3.kRing('882830829bfffff', 4),
+        opacity: 0.8,
         getHexagon: d => d,
         extruded: false,
         stroked: true,
@@ -1382,6 +1565,7 @@ export const TEST_CASES = [
     layers: [
       new H3HexagonLayer({
         data: h3.kRing('882830829bfffff', 4),
+        opacity: 0.8,
         getHexagon: d => d,
         extruded: false,
         stroked: true,
@@ -1404,9 +1588,8 @@ export const TEST_CASES = [
     },
     layers: [
       new H3HexagonLayer({
-        data: h3
-          .polyfill([[-90, -180], [90, -180], [90, 0], [-90, 0]], 0)
-          .concat(h3.polyfill([[-90, 180], [90, 180], [90, 0], [-90, 0]], 0)),
+        data: h3.getRes0Indexes(),
+        opacity: 0.8,
         getHexagon: d => d,
         extruded: false,
         filled: false,
@@ -1429,6 +1612,7 @@ export const TEST_CASES = [
     layers: [
       new H3ClusterLayer({
         data: ['882830829bfffff'],
+        opacity: 0.8,
         getHexagons: d => h3.kRing(d, 6),
         getLineWidth: 100,
         stroked: true,
@@ -1448,38 +1632,12 @@ export const TEST_CASES = [
     },
     layers: [
       new BitmapLayer({
+        opacity: 0.8,
         bounds: [-122.45, 37.7, -122.35, 37.8],
         image: ICON_ATLAS
       })
     ],
     goldenImage: './test/render/golden-images/bitmap.png'
-  },
-  {
-    name: 'trips-layer-2d',
-    viewState: {
-      latitude: 37.75,
-      longitude: -122.45,
-      zoom: 11.5,
-      pitch: 0,
-      bearing: 0
-    },
-    layers: [
-      new TripsLayer({
-        id: 'trips-2d',
-        data: dataSamples.trips,
-        getPath: d => {
-          const firstPoint = d[0].begin_shape.concat(d[0].begin_time);
-          const points = d.map(leg => leg.end_shape.concat(leg.end_time));
-          return [firstPoint].concat(points);
-        },
-        getColor: [253, 128, 93],
-        widthMinPixels: 4,
-        rounded: true,
-        trailLength: 500,
-        currentTime: 500
-      })
-    ],
-    goldenImage: './test/render/golden-images/trips.png'
   },
   {
     name: 'trips-layer-3d',
@@ -1494,6 +1652,7 @@ export const TEST_CASES = [
       new TripsLayer({
         id: 'trips-3d',
         data: dataSamples.trips,
+        opacity: 0.8,
         getPath: d => [d[0].begin_shape].concat(d.map(leg => leg.end_shape)),
         getTimestamps: d => [d[0].begin_time].concat(d.map(leg => leg.end_time)),
         getColor: [253, 128, 93],
@@ -1522,7 +1681,6 @@ export const TEST_CASES = [
         getPosition: d => d.COORDINATES,
         getFillColor: d => [255, 128, 0],
         getRadius: d => d.SPACES,
-        opacity: 1,
         pickable: true,
         radiusScale: 30,
         radiusMinPixels: 1,
@@ -1543,6 +1701,7 @@ export const TEST_CASES = [
     layers: [
       new S2Layer({
         data: dataSamples.s2cells,
+        opacity: 0.8,
         filled: true,
         stroked: false,
         getS2Token: f => f.token,

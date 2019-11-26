@@ -18,7 +18,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {PhongMaterial} from '@luma.gl/core';
 import {CompositeLayer, log} from '@deck.gl/core';
 import {ColumnLayer} from '@deck.gl/layers';
 
@@ -28,8 +27,6 @@ import {pointToHexbin} from './hexagon-aggregator';
 import CPUAggregator from '../utils/cpu-aggregator';
 
 function nop() {}
-
-const defaultMaterial = new PhongMaterial();
 
 const defaultProps = {
   // color
@@ -61,7 +58,7 @@ const defaultProps = {
   hexagonAggregator: pointToHexbin,
   getPosition: {type: 'accessor', value: x => x.position},
   // Optional material for 'lighting' shader module
-  material: defaultMaterial
+  material: true
 };
 
 export default class HexagonLayer extends CompositeLayer {
@@ -109,7 +106,7 @@ export default class HexagonLayer extends CompositeLayer {
 
       // transform to space coordinates
       const {viewport} = this.context;
-      const {pixelsPerMeter} = viewport.getDistanceScales();
+      const {unitsPerMeter} = viewport.getDistanceScales();
       const spaceCoord0 = this.projectFlat(vertex0);
       const spaceCoord3 = this.projectFlat(vertex3);
 
@@ -120,7 +117,7 @@ export default class HexagonLayer extends CompositeLayer {
 
       // Calculate angle that the perpendicular hexagon vertex axis is tilted
       angle = ((Math.acos(dx / dxy) * -Math.sign(dy)) / Math.PI) * 180 + 90;
-      radius = dxy / 2 / pixelsPerMeter[0];
+      radius = dxy / 2 / unitsPerMeter[0];
     }
 
     this.setState({angle, radius});

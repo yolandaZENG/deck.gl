@@ -21,8 +21,10 @@
 import test from 'tape-catch';
 import {testLayer, generateLayerTests} from '@deck.gl/test-utils';
 
+import {project32} from '@deck.gl/core';
 import {ScenegraphLayer} from '@deck.gl/mesh-layers';
-import {GroupNode, ModelNode, CubeGeometry} from '@luma.gl/core';
+import {CubeGeometry} from '@luma.gl/core';
+import {GroupNode, ModelNode} from '@luma.gl/addons';
 
 import * as FIXTURES from 'deck.gl-test/data';
 
@@ -40,7 +42,7 @@ uniform float sizeScale;
 attribute vec3 positions;
 
 attribute vec3 instancePositions;
-attribute vec2 instancePositions64xy;
+attribute vec3 instancePositions64Low;
 attribute vec4 instanceColors;
 attribute vec3 instanceTranslation;
 
@@ -53,7 +55,7 @@ void main(void) {
   pos = project_size(pos);
 
   vec4 position_commonspace;
-  gl_Position = project_position_to_clipspace(instancePositions, instancePositions64xy, pos, position_commonspace);
+  gl_Position = project_position_to_clipspace(instancePositions, instancePositions64Low, pos, position_commonspace);
 }
 `;
 
@@ -101,7 +103,7 @@ test('ScenegraphLayer#tests', t => {
             geometry: new CubeGeometry(),
             vs,
             fs,
-            modules: ['project32'],
+            modules: [project32],
             isInstanced: true
           })
         ]);

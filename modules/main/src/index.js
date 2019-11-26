@@ -50,8 +50,13 @@ export {
   // For custom layers
   AttributeManager,
   // Shader modules
+  picking,
   project,
+  project32,
   project64,
+  gouraudLighting,
+  phongLighting,
+  shadow,
   // Internal classes
   LayerManager,
   DeckRenderer,
@@ -76,7 +81,8 @@ export {
   LayerExtension,
   // Utilities
   fp64LowPart,
-  createIterable
+  createIterable,
+  mergeShaders
 } from '@deck.gl/core';
 
 // EXPERIMENTAL CORE LIB CLASSES (May change in minor version bumps, use at your own risk)

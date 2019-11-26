@@ -18,9 +18,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {Layer} from '@deck.gl/core';
+import {Layer, project32, gouraudLighting, picking} from '@deck.gl/core';
 import GL from '@luma.gl/constants';
-import {Model, Geometry, hasFeature, FEATURES, PhongMaterial} from '@luma.gl/core';
+import {Model, Geometry, hasFeature, FEATURES} from '@luma.gl/core';
 
 // Polygon geometry generation is managed by the polygon tesselator
 import PolygonTesselator from './polygon-tesselator';
@@ -30,7 +30,6 @@ import vsSide from './solid-polygon-layer-vertex-side.glsl';
 import fs from './solid-polygon-layer-fragment.glsl';
 
 const DEFAULT_COLOR = [0, 0, 0, 255];
-const defaultMaterial = new PhongMaterial();
 
 const defaultProps = {
   filled: true,
@@ -38,6 +37,7 @@ const defaultProps = {
   extruded: false,
   // Whether to draw a GL.LINES wireframe of the polygon
   wireframe: false,
+  _normalize: true,
 
   // elevation multiplier
   elevationScale: {type: 'number', min: 0, value: 1},
@@ -51,7 +51,7 @@ const defaultProps = {
   getLineColor: {type: 'accessor', value: DEFAULT_COLOR},
 
   // Optional settings for 'lighting' shader module
-  material: defaultMaterial
+  material: true
 };
 
 const ATTRIBUTE_TRANSITION = {
@@ -66,7 +66,7 @@ export default class SolidPolygonLayer extends Layer {
       vs,
       fs,
       defines: {},
-      modules: ['project32', 'gouraud-lighting', 'picking']
+      modules: [project32, gouraudLighting, picking]
     });
   }
 
@@ -244,8 +244,12 @@ export default class SolidPolygonLayer extends Layer {
     // tessellator needs to be invoked
     if (geometryConfigChanged) {
       const {polygonTesselator} = this.state;
+      const buffers = props.data.attributes || {};
       polygonTesselator.updateGeometry({
         data: props.data,
+        normalize: props._normalize,
+        geometryBuffer: buffers.getPolygon,
+        buffers,
         getGeometry: props.getPolygon,
         positionFormat: props.positionFormat,
         fp64: this.use64bitPositions(),
@@ -254,7 +258,7 @@ export default class SolidPolygonLayer extends Layer {
 
       this.setState({
         numInstances: polygonTesselator.instanceCount,
-        bufferLayout: polygonTesselator.bufferLayout
+        startIndices: polygonTesselator.vertexStarts
       });
 
       if (!changeFlags.dataChanged) {
@@ -325,13 +329,13 @@ export default class SolidPolygonLayer extends Layer {
 
   calculateIndices(attribute) {
     const {polygonTesselator} = this.state;
-    attribute.bufferLayout = polygonTesselator.indexLayout;
+    attribute.startIndices = polygonTesselator.indexStarts;
     attribute.value = polygonTesselator.get('indices');
   }
 
   calculatePositions(attribute) {
     const {polygonTesselator} = this.state;
-    attribute.bufferLayout = polygonTesselator.bufferLayout;
+    attribute.startIndices = polygonTesselator.vertexStarts;
     attribute.value = polygonTesselator.get('positions');
   }
 

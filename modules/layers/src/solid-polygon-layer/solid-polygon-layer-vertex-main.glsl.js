@@ -37,8 +37,8 @@ struct PolygonProps {
   vec3 positions;
   vec3 nextPositions;
   vec3 pickingColors;
-  vec2 positions64xyLow;
-  vec2 nextPositions64xyLow;
+  vec3 positions64Low;
+  vec3 nextPositions64Low;
   float elevations;
 };
 
@@ -54,20 +54,21 @@ vec3 project_offset_normal(vec3 vector) {
 
 void calculatePosition(PolygonProps props) {
   vec3 pos;
-  vec2 pos64xyLow;
+  vec3 pos64Low;
   vec3 normal;
   vec4 colors = isWireframe ? props.lineColors : props.fillColors;
 
   geometry.worldPosition = props.positions;
   geometry.worldPositionAlt = props.nextPositions;
+  geometry.pickingColor = props.pickingColors;
 
 #ifdef IS_SIDE_VERTEX
   pos = mix(props.positions, props.nextPositions, vertexPositions.x);
-  pos64xyLow = mix(props.positions64xyLow, props.nextPositions64xyLow, vertexPositions.x);
+  pos64Low = mix(props.positions64Low, props.nextPositions64Low, vertexPositions.x);
   isValid = vertexValid;
 #else
   pos = props.positions;
-  pos64xyLow = props.positions64xyLow;
+  pos64Low = props.positions64Low;
   isValid = 1.0;
 #endif
 
@@ -83,7 +84,7 @@ void calculatePosition(PolygonProps props) {
     geometry.normal = normal;
   }
 
-  gl_Position = project_position_to_clipspace(pos, pos64xyLow, vec3(0.), geometry.position);
+  gl_Position = project_position_to_clipspace(pos, pos64Low, vec3(0.), geometry.position);
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
 
   if (extruded) {
@@ -93,8 +94,5 @@ void calculatePosition(PolygonProps props) {
     vColor = vec4(colors.rgb, colors.a * opacity);
   }
   DECKGL_FILTER_COLOR(vColor, geometry);
-
-  // Set color to be rendered to picking fbo (also used to check for selection highlight).
-  picking_setPickingColor(props.pickingColors);
 }
 `;

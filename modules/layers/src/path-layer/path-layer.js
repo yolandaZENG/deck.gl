@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {Layer} from '@deck.gl/core';
+import {Layer, project32, picking} from '@deck.gl/core';
 import GL from '@luma.gl/constants';
 import {Model, Geometry} from '@luma.gl/core';
 
@@ -38,6 +38,8 @@ const defaultProps = {
   miterLimit: {type: 'number', min: 0, value: 4},
   dashJustified: false,
   billboard: false,
+  // `loop` or `open`
+  _pathType: null,
 
   getPath: {type: 'accessor', value: object => object.path},
   getColor: {type: 'accessor', value: DEFAULT_COLOR},
@@ -53,7 +55,7 @@ const ATTRIBUTE_TRANSITION = {
 
 export default class PathLayer extends Layer {
   getShaders() {
-    return super.getShaders({vs, fs, modules: ['project32', 'picking']}); // 'project' module added by default.
+    return super.getShaders({vs, fs, modules: [project32, picking]}); // 'project' module added by default.
   }
 
   initializeState() {
@@ -61,16 +63,15 @@ export default class PathLayer extends Layer {
     const attributeManager = this.getAttributeManager();
     /* eslint-disable max-len */
     attributeManager.addInstanced({
-      startPositions: {
+      positions: {
         size: 3,
-        // Hack - Attribute class needs this to properly apply partial update
-        // The first 3 numbers of the value is just padding
+        // Start filling buffer from 3 elements in
         offset: 12,
         type: GL.DOUBLE,
         fp64: this.use64bitPositions(),
         transition: ATTRIBUTE_TRANSITION,
         accessor: 'getPath',
-        update: this.calculateStartPositions,
+        update: this.calculatePositions,
         noAlloc,
         shaderAttributes: {
           instanceLeftPositions: {
@@ -78,23 +79,12 @@ export default class PathLayer extends Layer {
           },
           instanceStartPositions: {
             offset: 12
-          }
-        }
-      },
-      endPositions: {
-        size: 3,
-        type: GL.DOUBLE,
-        fp64: this.use64bitPositions(),
-        transition: ATTRIBUTE_TRANSITION,
-        accessor: 'getPath',
-        update: this.calculateEndPositions,
-        noAlloc,
-        shaderAttributes: {
+          },
           instanceEndPositions: {
-            offset: 0
+            offset: 24
           },
           instanceRightPositions: {
-            offset: 12
+            offset: 36
           }
         }
       },
@@ -146,15 +136,20 @@ export default class PathLayer extends Layer {
 
     if (geometryChanged) {
       const {pathTesselator} = this.state;
+      const buffers = props.data.attributes || {};
       pathTesselator.updateGeometry({
         data: props.data,
+        geometryBuffer: buffers.getPath,
+        buffers,
+        normalize: !props._pathType,
+        loop: props._pathType === 'loop',
         getGeometry: props.getPath,
         positionFormat: props.positionFormat,
         dataChanged: changeFlags.dataChanged
       });
       this.setState({
         numInstances: pathTesselator.instanceCount,
-        bufferLayout: pathTesselator.bufferLayout
+        startIndices: pathTesselator.vertexStarts
       });
       if (!changeFlags.dataChanged) {
         // Base `layer.updateState` only invalidates all attributes on data change
@@ -186,7 +181,7 @@ export default class PathLayer extends Layer {
       dashJustified
     } = this.props;
 
-    const widthMultiplier = widthUnits === 'pixels' ? viewport.distanceScales.metersPerPixel[2] : 1;
+    const widthMultiplier = widthUnits === 'pixels' ? viewport.metersPerPixel : 1;
 
     this.state.model
       .setUniforms(
@@ -283,24 +278,17 @@ export default class PathLayer extends Layer {
     );
   }
 
-  calculateStartPositions(attribute) {
+  calculatePositions(attribute) {
     const {pathTesselator} = this.state;
 
-    attribute.bufferLayout = pathTesselator.bufferLayout;
-    attribute.value = pathTesselator.get('startPositions');
-  }
-
-  calculateEndPositions(attribute) {
-    const {pathTesselator} = this.state;
-
-    attribute.bufferLayout = pathTesselator.bufferLayout;
-    attribute.value = pathTesselator.get('endPositions');
+    attribute.startIndices = pathTesselator.vertexStarts;
+    attribute.value = pathTesselator.get('positions');
   }
 
   calculateSegmentTypes(attribute) {
     const {pathTesselator} = this.state;
 
-    attribute.bufferLayout = pathTesselator.bufferLayout;
+    attribute.startIndices = pathTesselator.vertexStarts;
     attribute.value = pathTesselator.get('segmentTypes');
   }
 }

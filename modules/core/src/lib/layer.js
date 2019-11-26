@@ -20,14 +20,14 @@
 
 /* eslint-disable react/no-direct-mutation-state */
 import {COORDINATE_SYSTEM} from './constants';
-import AttributeManager from './attribute-manager';
+import AttributeManager from './attribute/attribute-manager';
 import {removeLayerInSeer} from './seer-integration';
 import UniformTransitionManager from './uniform-transition-manager';
 import {diffProps, validateProps} from '../lifecycle/props';
 import {count} from '../utils/count';
 import log from '../utils/log';
 import GL from '@luma.gl/constants';
-import {withParameters} from '@luma.gl/core';
+import {withParameters, setParameters} from '@luma.gl/core';
 import assert from '../utils/assert';
 import {mergeShaders} from '../utils/shader';
 import {projectPosition, getWorldPosition} from '../shaderlib/project/project-functions';
@@ -35,7 +35,7 @@ import {projectPosition, getWorldPosition} from '../shaderlib/project/project-fu
 import Component from '../lifecycle/component';
 import LayerState from './layer-state';
 
-import {worldToPixels} from 'viewport-mercator-project';
+import {worldToPixels} from '@math.gl/web-mercator';
 
 import {load} from '@loaders.gl/core';
 
@@ -58,11 +58,10 @@ const defaultProps = {
     compare: false
   },
   updateTriggers: {}, // Update triggers: a core change detection mechanism in deck.gl
-  numInstances: undefined,
 
   visible: true,
   pickable: false,
-  opacity: {type: 'number', min: 0, max: 1, value: 0.8},
+  opacity: {type: 'number', min: 0, max: 1, value: 1},
 
   onHover: {type: 'function', value: null, compare: false, optional: true},
   onClick: {type: 'function', value: null, compare: false, optional: true},
@@ -80,9 +79,6 @@ const defaultProps = {
   parameters: {},
   uniforms: {},
   extensions: [],
-  framebuffer: null,
-
-  animation: null, // Passed prop animation functions to evaluate props
 
   // Offset depth based on layer index to avoid z-fighting.
   // Negative values pull layer towards the camera
@@ -157,11 +153,6 @@ export default class Layer extends Component {
     return this.state && (this.state.models || (this.state.model ? [this.state.model] : []));
   }
 
-  // TODO - Gradually phase out, does not support multi model layers
-  getSingleModel() {
-    return this.state && this.state.model;
-  }
-
   getAttributeManager() {
     return this.internalState && this.internalState.attributeManager;
   }
@@ -175,16 +166,6 @@ export default class Layer extends Component {
   // Returns the default parse options for async props
   getLoadOptions() {
     return this.props.loadOptions;
-  }
-
-  // Use iteration (the only required capability on data) to get first element
-  // deprecated since we are effectively only supporting Arrays
-  getFirstObject() {
-    const {data} = this.props;
-    for (const object of data) {
-      return object;
-    }
-    return null;
   }
 
   // PROJECTION METHODS
@@ -220,22 +201,6 @@ export default class Layer extends Component {
       coordinateOrigin: this.props.coordinateOrigin,
       coordinateSystem: this.props.coordinateSystem
     });
-  }
-
-  // DEPRECATE: This does not handle offset modes
-  projectFlat(lngLat) {
-    log.deprecated('layer.projectFlat', 'layer.projectPosition')();
-    const {viewport} = this.context;
-    assert(Array.isArray(lngLat));
-    return viewport.projectFlat(lngLat);
-  }
-
-  // DEPRECATE: This is not meaningful in offset modes
-  unprojectFlat(xy) {
-    log.deprecated('layer.unprojectFlat')();
-    const {viewport} = this.context;
-    assert(Array.isArray(xy));
-    return viewport.unprojectFlat(xy);
   }
 
   use64bitPositions() {
@@ -311,6 +276,7 @@ export default class Layer extends Component {
 
   // Default implementation, all attributes will be invalidated and updated
   // when data changes
+  /* eslint-disable-next-line complexity */
   updateState({oldProps, props, context, changeFlags}) {
     const attributeManager = this.getAttributeManager();
     if (changeFlags.dataChanged && attributeManager) {
@@ -323,6 +289,30 @@ export default class Layer extends Component {
       } else {
         attributeManager.invalidateAll();
       }
+    }
+
+    // Picking module parameters
+    const {autoHighlight, highlightedObjectIndex, highlightColor} = props;
+    if (
+      oldProps.autoHighlight !== autoHighlight ||
+      oldProps.highlightedObjectIndex !== highlightedObjectIndex ||
+      oldProps.highlightColor !== highlightColor
+    ) {
+      const parameters = {};
+      if (!autoHighlight) {
+        parameters.pickingSelectedColor = null;
+      }
+      // TODO - fix in luma?
+      highlightColor[3] = highlightColor[3] || 255;
+      parameters.pickingHighlightColor = highlightColor;
+
+      // highlightedObjectIndex will overwrite any settings from auto highlighting.
+      if (Number.isInteger(highlightedObjectIndex)) {
+        parameters.pickingSelectedColor =
+          highlightedObjectIndex >= 0 ? this.encodePickingColor(highlightedObjectIndex) : null;
+      }
+
+      this.setModuleParameters(parameters);
     }
   }
 
@@ -400,15 +390,15 @@ export default class Layer extends Component {
 
     // Figure out data length
     const numInstances = this.getNumInstances(props);
-    const bufferLayout = this.getBufferLayout(props);
+    const startIndices = this.getStartIndices(props);
 
     attributeManager.update({
       data: props.data,
       numInstances,
-      bufferLayout,
+      startIndices,
       props,
       transitions: props.transitions,
-      buffers: props,
+      buffers: props.data.attributes,
       context: this,
       // Don't worry about non-attribute props
       ignoreUnknownAttributes: true
@@ -470,13 +460,12 @@ export default class Layer extends Component {
   }
 
   _setModelAttributes(model, changedAttributes) {
-    const shaderAttributes = {};
+    const attributeManager = this.getAttributeManager();
     const excludeAttributes = model.userData.excludeAttributes || {};
-    for (const attributeName in changedAttributes) {
-      if (!excludeAttributes[attributeName]) {
-        Object.assign(shaderAttributes, changedAttributes[attributeName].getShaderAttributes());
-      }
-    }
+    const shaderAttributes = attributeManager.getShaderAttributes(
+      changedAttributes,
+      excludeAttributes
+    );
 
     model.setAttributes(shaderAttributes);
   }
@@ -500,7 +489,7 @@ export default class Layer extends Component {
   restorePickingColors() {
     const {pickingColors, instancePickingColors} = this.getAttributeManager().attributes;
     const colors = pickingColors || instancePickingColors;
-    colors.update({value: colors.value});
+    colors.updateSubBuffer({startOffset: 0});
   }
 
   // Deduces numer of instances. Intention is to support:
@@ -522,25 +511,24 @@ export default class Layer extends Component {
     }
 
     // Use container library to get a count for any ES6 container or object
-    const {data} = this.props;
-    return count(data);
+    return count(props.data);
   }
 
   // Buffer layout describes how many attribute values are packed for each data object
   // The default (null) is one value each object.
   // Some data formats (e.g. paths, polygons) have various length. Their buffer layout
   //  is in the form of [L0, L1, L2, ...]
-  getBufferLayout(props) {
+  getStartIndices(props) {
     props = props || this.props;
 
-    // First Check if bufferLayout is provided as an explicit value
-    if (props.bufferLayout !== undefined) {
-      return props.bufferLayout;
+    // First Check if startIndices is provided as an explicit value
+    if (props.startIndices !== undefined) {
+      return props.startIndices;
     }
 
     // Second check if the layer has set its own value
-    if (this.state && this.state.bufferLayout !== undefined) {
-      return this.state.bufferLayout;
+    if (this.state && this.state.startIndices) {
+      return this.state.startIndices;
     }
 
     return null;
@@ -562,10 +550,6 @@ export default class Layer extends Component {
     }
     // End subclass lifecycle methods
 
-    // TODO deprecated, for backwards compatibility with older layers
-    // in case layer resets state
-    this.state.attributeManager = this.getAttributeManager();
-
     // initializeState callback tends to clear state
     this.setChangeFlags({
       dataChanged: true,
@@ -575,12 +559,6 @@ export default class Layer extends Component {
     });
 
     this._updateState();
-
-    const model = this.getSingleModel();
-    if (model) {
-      model.id = this.props.id;
-      model.program.id = `${this.props.id}-program`;
-    }
   }
 
   // Called by layer manager
@@ -678,22 +656,17 @@ export default class Layer extends Component {
     // TODO - move to draw-layers
     const {getPolygonOffset} = this.props;
     const offsets = (getPolygonOffset && getPolygonOffset(uniforms)) || [0, 0];
-    parameters.polygonOffset = offsets;
+
+    setParameters({polygonOffset: offsets});
 
     // Call subclass lifecycle method
     withParameters(this.context.gl, parameters, () => {
       this.draw({moduleParameters, uniforms, parameters, context: this.context});
     });
+
     // End lifecycle method
 
     this.props = currentProps;
-  }
-
-  // {uniforms = {}, ...opts}
-  pickLayer(opts) {
-    // Call subclass lifecycle method
-    return this.getPickingInfo(opts);
-    // End lifecycle method
   }
 
   // Helper methods
@@ -799,7 +772,7 @@ ${flags.viewportChanged ? 'viewport' : ''}\
     if (changeFlags.updateTriggersChanged) {
       for (const key in changeFlags.updateTriggersChanged) {
         if (changeFlags.updateTriggersChanged[key]) {
-          this._activeUpdateTrigger(key);
+          this.invalidateAttribute(key);
         }
       }
     }
@@ -938,35 +911,6 @@ ${flags.viewportChanged ? 'viewport' : ''}\
   _onAsyncPropUpdated() {
     this.diffProps(this.props, this.internalState.getOldProps());
     this.setNeedsUpdate();
-  }
-
-  // Operate on each changed triggers, will be called when an updateTrigger changes
-  _activeUpdateTrigger(propName) {
-    this.invalidateAttribute(propName);
-  }
-
-  // DEPRECATED METHODS
-
-  // TODO - remove in v8
-  setLayerNeedsUpdate() {
-    log.deprecated('layer.setLayerNeedsUpdate', 'layer.setNeedsUpdate')();
-    this.setNeedsUpdate();
-  }
-
-  // Updates selected state members and marks the object for redraw
-  setUniforms(uniformMap) {
-    for (const model of this.getModels()) {
-      model.setUniforms(uniformMap);
-    }
-
-    // TODO - set needsRedraw on the model(s)?
-    this.setNeedsRedraw();
-    log.deprecated('layer.setUniforms', 'model.setUniforms')();
-  }
-
-  use64bitProjection() {
-    log.removed('use64bitProjection', 'Fp64Extension')();
-    return false;
   }
 }
 

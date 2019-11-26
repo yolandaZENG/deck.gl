@@ -22,9 +22,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {Layer} from '@deck.gl/core';
+import {Layer, project32, phongLighting, picking} from '@deck.gl/core';
 import GL from '@luma.gl/constants';
-import {Model, Geometry, Texture2D, PhongMaterial, isWebGL2} from '@luma.gl/core';
+import {Model, Geometry, Texture2D, isWebGL2} from '@luma.gl/core';
 
 import {MATRIX_ATTRIBUTES} from '../utils/matrix';
 
@@ -81,7 +81,6 @@ function getGeometry(data) {
 }
 
 const DEFAULT_COLOR = [0, 0, 0, 255];
-const defaultMaterial = new PhongMaterial();
 
 const defaultProps = {
   mesh: {value: null, type: 'object', async: true},
@@ -92,14 +91,13 @@ const defaultProps = {
     depthTest: true,
     depthFunc: GL.LEQUAL
   },
-  opacity: 1.0,
 
   // NOTE(Tarek): Quick and dirty wireframe. Just draws
   // the same mesh with LINE_STRIPS. Won't follow edges
   // of the original mesh.
   wireframe: false,
   // Optional material for 'lighting' shader module
-  material: defaultMaterial,
+  material: true,
   getPosition: {type: 'accessor', value: x => x.position},
   getColor: {type: 'accessor', value: DEFAULT_COLOR},
 
@@ -119,7 +117,7 @@ export default class SimpleMeshLayer extends Layer {
     const vs = gl2 ? vs3 : vs1;
     const fs = gl2 ? fs3 : fs1;
 
-    return super.getShaders({vs, fs, modules: ['project32', 'phong-lighting', 'picking']});
+    return super.getShaders({vs, fs, modules: [project32, phongLighting, picking]});
   }
 
   initializeState() {

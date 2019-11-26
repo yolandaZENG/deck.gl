@@ -2,6 +2,10 @@
 
 This page contains highlights of each deck.gl release. Also check our [vis.gl blog](https://medium.com/vis-gl) for news about new releases and features in deck.gl.
 
+## deck.gl v8.0
+
+- `ArcLayer` supports drawing arcs between two 3D positions.
+
 ## deck.gl v7.3
 
 Release Date: Sep 30, 2019
@@ -502,7 +506,7 @@ The projection algorithm used for geospatial coordinates (layers with `coordinat
 
 ### JSON API (Experimental)
 
-A new experimental module `@deck.gl/json` provides a set of classes that allows deck.gl layers and views to be specified using JSON-formatted text files. To facilitate experimentation, a JSON layer browser is available on [http://deck.gl/json](http://deck.gl/json).
+A new experimental module `@deck.gl/json` provides a set of classes that allows deck.gl layers and views to be specified using JSON-formatted text files. To facilitate experimentation, a JSON layer browser is available on [http://deck.gl/playground](http://deck.gl/playground).
 
 
 ### Enhanced Multiview Support

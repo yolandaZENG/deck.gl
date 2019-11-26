@@ -89,14 +89,11 @@ function calculateMatrixAndOffset({
       shaderCoordinateSystem = PROJECT_COORDINATE_SYSTEM.LNG_LAT;
     } else {
       // Use LNGLAT_AUTO_OFFSET
-      const lng = Math.fround(viewport.longitude);
-      const lat = Math.fround(viewport.latitude);
-      shaderCoordinateOrigin = [lng, lat];
+      shaderCoordinateOrigin = [Math.fround(viewport.longitude), Math.fround(viewport.latitude), 0];
     }
   }
   if (shaderCoordinateSystem === PROJECT_COORDINATE_SYSTEM.IDENTITY) {
-    // We only support 64-bit precision in the X and Y components of positions for now
-    shaderCoordinateOrigin = [Math.fround(viewport.position[0]), Math.fround(viewport.position[1])];
+    shaderCoordinateOrigin = viewport.position.map(Math.fround);
   }
 
   shaderCoordinateOrigin[2] = shaderCoordinateOrigin[2] || 0;
@@ -114,10 +111,7 @@ function calculateMatrixAndOffset({
       // Calculate transformed projectionCenter (using 64 bit precision JS)
       // This is the key to offset mode precision
       // (avoids doing this addition in 32 bit precision in GLSL)
-      const positionCommonSpace = viewport.projectPosition(
-        shaderCoordinateOrigin,
-        Math.pow(2, coordinateZoom)
-      );
+      const positionCommonSpace = viewport.projectPosition(shaderCoordinateOrigin);
 
       cameraPosCommon = [
         cameraPosCommon[0] - positionCommonSpace[0],
@@ -178,18 +172,17 @@ export function getUniformsFromViewport({
 } = {}) {
   assert(viewport);
 
-  return Object.assign(
-    {
-      project_uModelMatrix: modelMatrix || IDENTITY_MATRIX
-    },
-    getMemoizedViewportUniforms({
-      viewport,
-      devicePixelRatio,
-      coordinateSystem,
-      coordinateOrigin,
-      wrapLongitude
-    })
-  );
+  const uniforms = getMemoizedViewportUniforms({
+    viewport,
+    devicePixelRatio,
+    coordinateSystem,
+    coordinateOrigin,
+    wrapLongitude
+  });
+
+  uniforms.project_uModelMatrix = modelMatrix || IDENTITY_MATRIX;
+
+  return uniforms;
 }
 
 function calculateViewportUniforms({
@@ -234,8 +227,8 @@ function calculateViewportUniforms({
 
     // Distance at which screen pixels are projected
     project_uFocalDistance: viewport.focalDistance || 1,
-    project_uCommonUnitsPerMeter: distanceScales.pixelsPerMeter,
-    project_uCommonUnitsPerWorldUnit: distanceScales.pixelsPerMeter,
+    project_uCommonUnitsPerMeter: distanceScales.unitsPerMeter,
+    project_uCommonUnitsPerWorldUnit: distanceScales.unitsPerMeter,
     project_uCommonUnitsPerWorldUnit2: DEFAULT_PIXELS_PER_UNIT2,
     project_uScale: viewport.scale, // This is the mercator scale (2 ** zoom)
 
@@ -248,8 +241,8 @@ function calculateViewportUniforms({
   const distanceScalesAtOrigin = viewport.getDistanceScales(shaderCoordinateOrigin);
   switch (shaderCoordinateSystem) {
     case PROJECT_COORDINATE_SYSTEM.METER_OFFSETS:
-      uniforms.project_uCommonUnitsPerWorldUnit = distanceScalesAtOrigin.pixelsPerMeter;
-      uniforms.project_uCommonUnitsPerWorldUnit2 = distanceScalesAtOrigin.pixelsPerMeter2;
+      uniforms.project_uCommonUnitsPerWorldUnit = distanceScalesAtOrigin.unitsPerMeter;
+      uniforms.project_uCommonUnitsPerWorldUnit2 = distanceScalesAtOrigin.unitsPerMeter2;
       break;
 
     case PROJECT_COORDINATE_SYSTEM.LNGLAT_AUTO_OFFSET:
@@ -257,8 +250,8 @@ function calculateViewportUniforms({
     // eslint-disable-line no-fallthrough
     case PROJECT_COORDINATE_SYSTEM.LNG_LAT:
     case PROJECT_COORDINATE_SYSTEM.LNGLAT_OFFSETS:
-      uniforms.project_uCommonUnitsPerWorldUnit = distanceScalesAtOrigin.pixelsPerDegree;
-      uniforms.project_uCommonUnitsPerWorldUnit2 = distanceScalesAtOrigin.pixelsPerDegree2;
+      uniforms.project_uCommonUnitsPerWorldUnit = distanceScalesAtOrigin.unitsPerDegree;
+      uniforms.project_uCommonUnitsPerWorldUnit2 = distanceScalesAtOrigin.unitsPerDegree2;
       break;
 
     case PROJECT_COORDINATE_SYSTEM.IDENTITY:

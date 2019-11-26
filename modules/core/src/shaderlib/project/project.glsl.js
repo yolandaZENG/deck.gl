@@ -47,7 +47,7 @@ uniform vec3 project_uCoordinateOrigin;
 const float TILE_SIZE = 512.0;
 const float PI = 3.1415926536;
 const float WORLD_SCALE = TILE_SIZE / (PI * 2.0);
-const vec2 ZERO_64_XY_LOW = vec2(0.0, 0.0);
+const vec3 ZERO_64_LOW = vec3(0.0);
 
 //
 // Scaling offsets - scales meters to "world distance"
@@ -98,18 +98,18 @@ vec2 project_mercator_(vec2 lnglat) {
   }
   return vec2(
     radians(x) + PI,
-    PI - log(tan_fp32(PI * 0.25 + radians(lnglat.y) * 0.5))
+    PI + log(tan_fp32(PI * 0.25 + radians(lnglat.y) * 0.5))
   );
 }
 
 //
 // Projects lnglats (or meter offsets, depending on mode) to common space
 //
-vec4 project_position(vec4 position, vec2 position64xyLow) {
+vec4 project_position(vec4 position, vec3 position64Low) {
   // TODO - why not simply subtract center and fall through?
   if (project_uCoordinateSystem == COORDINATE_SYSTEM_LNG_LAT) {
     return project_uModelMatrix * vec4(
-      project_mercator_(position.xy) * WORLD_SCALE * project_uScale,
+      project_mercator_(position.xy) * WORLD_SCALE,
       project_size(position.z),
       position.w
     );
@@ -117,9 +117,7 @@ vec4 project_position(vec4 position, vec2 position64xyLow) {
 
   if (project_uCoordinateSystem == COORDINATE_SYSTEM_LNGLAT_AUTO_OFFSET) {
     // Subtract high part of 64 bit value. Convert remainder to float32, preserving precision.
-    float X = position.x - project_uCoordinateOrigin.x;
-    float Y = position.y - project_uCoordinateOrigin.y;
-    return project_offset_(vec4(X + position64xyLow.x, Y + position64xyLow.y, position.z, position.w));
+    return project_offset_(vec4(position.xyz - project_uCoordinateOrigin + position64Low, position.w));
   }
 
   if (project_uCoordinateSystem == COORDINATE_SYSTEM_LNGLAT_OFFSETS) {
@@ -132,28 +130,28 @@ vec4 project_position(vec4 position, vec2 position64xyLow) {
   if (project_uCoordinateSystem == COORDINATE_SYSTEM_IDENTITY) {
     position_world.xyz -= project_uCoordinateOrigin;
     // Translation is already added to the high parts
-    position_world += project_uModelMatrix * vec4(position64xyLow, 0.0, 0.0);
+    position_world += project_uModelMatrix * vec4(position64Low, 0.0);
   }
 
   return project_offset_(position_world);
 }
 
 vec4 project_position(vec4 position) {
-  return project_position(position, ZERO_64_XY_LOW);
+  return project_position(position, ZERO_64_LOW);
 }
 
-vec3 project_position(vec3 position, vec2 position64xyLow) {
-  vec4 projected_position = project_position(vec4(position, 1.0), position64xyLow);
+vec3 project_position(vec3 position, vec3 position64Low) {
+  vec4 projected_position = project_position(vec4(position, 1.0), position64Low);
   return projected_position.xyz;
 }
 
 vec3 project_position(vec3 position) {
-  vec4 projected_position = project_position(vec4(position, 1.0), ZERO_64_XY_LOW);
+  vec4 projected_position = project_position(vec4(position, 1.0), ZERO_64_LOW);
   return projected_position.xyz;
 }
 
 vec2 project_position(vec2 position) {
-  vec4 projected_position = project_position(vec4(position, 0.0, 1.0), ZERO_64_XY_LOW);
+  vec4 projected_position = project_position(vec4(position, 0.0, 1.0), ZERO_64_LOW);
   return projected_position.xy;
 }
 
@@ -181,32 +179,12 @@ vec2 project_pixel_size_to_clipspace(vec2 pixels) {
 }
 
 float project_size_to_pixel(float meters) {
-  return project_size(meters);
+  return project_size(meters) * project_uScale;
 }
 float project_pixel_size(float pixels) {
-  return pixels;
+  return pixels / project_uScale;
 }
 vec2 project_pixel_size(vec2 pixels) {
-  return pixels;
-}
-
-// Deprecated, remove in v8
-float project_scale(float meters) {
-  return project_size(meters);
-}
-vec2 project_scale(vec2 meters) {
-  return project_size(meters);
-}
-vec3 project_scale(vec3 meters) {
-  return project_size(meters);
-}
-vec4 project_scale(vec4 meters) {
-  return project_size(meters);
-}
-vec4 project_to_clipspace(vec4 position) {
-  return project_common_position_to_clipspace(position);
-}
-vec4 project_pixel_to_clipspace(vec2 pixels) {
-  return vec4(project_pixel_size_to_clipspace(pixels), 0.0, 0.0);
+  return pixels / project_uScale;
 }
 `;

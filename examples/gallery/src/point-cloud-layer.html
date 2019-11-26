@@ -64,12 +64,12 @@
 
     new DeckGL({
       views: [new OrbitView()],
-      viewState: {rotationX: -45, rotationOrbit: -45, zoom: 5},
+      initialViewState: {rotationX: -45, rotationOrbit: -45, zoom: 5},
+      controller: true,
       layers: [
         new PointCloudLayer({
           id: 'pointCloud',
           coordinateSystem: COORDINATE_SYSTEM.IDENTITY,
-          opacity: 1,
           data: points,
           getPosition: d => d.position,
           getNormal: d => d.normal,

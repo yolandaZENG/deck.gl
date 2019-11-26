@@ -30,8 +30,9 @@ export {COORDINATE_SYSTEM} from './lib/constants';
 
 // Effects
 export {default as LightingEffect} from './effects/lighting/lighting-effect';
-export {default as PointLight} from './effects/lighting/point-light';
-export {default as DirectionalLight} from './effects/lighting/directional-light';
+export {AmbientLight} from './effects/lighting/ambient-light';
+export {DirectionalLight} from './effects/lighting/directional-light';
+export {PointLight} from './effects/lighting/point-light';
 export {default as _CameraLight} from './effects/lighting/camera-light';
 export {default as _SunLight} from './effects/lighting/sun-light';
 export {default as PostProcessEffect} from './effects/post-process-effect';
@@ -43,7 +44,7 @@ export {default as _LayersPass} from './passes/layers-pass';
 export {default as Deck} from './lib/deck';
 
 export {default as LayerManager} from './lib/layer-manager';
-export {default as AttributeManager} from './lib/attribute-manager';
+export {default as AttributeManager} from './lib/attribute/attribute-manager';
 export {default as Layer} from './lib/layer';
 export {default as CompositeLayer} from './lib/composite-layer';
 export {default as DeckRenderer} from './lib/deck-renderer';
@@ -53,8 +54,15 @@ export {default as Viewport} from './viewports/viewport';
 export {default as WebMercatorViewport} from './viewports/web-mercator-viewport';
 
 // Shader modules
-export {default as project} from './shaderlib/project/project';
-export {default as project64} from './shaderlib/project64/project64';
+export {
+  picking,
+  project,
+  project32,
+  project64,
+  gouraudLighting,
+  phongLighting,
+  shadow
+} from './shaderlib';
 
 export {default as View} from './views/view';
 export {default as MapView} from './views/map-view';
@@ -91,11 +99,12 @@ export {fp64LowPart} from './utils/math-utils';
 import Tesselator from './utils/tesselator'; // Export? move to luma.gl or math.gl?
 import {count} from './utils/count';
 import memoize from './utils/memoize';
-
-// lighting
-export {AmbientLight} from '@luma.gl/core';
+export {mergeShaders} from './utils/shader';
 
 export {LayerExtension} from './lib/layer-extension';
+
+// props
+import {compareProps} from './lifecycle/props';
 
 // Exports for layers
 // Experimental Features may change in minor version bumps, use at your own risk)
@@ -104,5 +113,6 @@ export const experimental = {
   flattenVertices,
   fillArray,
   count,
-  memoize
+  memoize,
+  compareProps
 };

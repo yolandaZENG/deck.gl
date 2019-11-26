@@ -18,9 +18,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {Layer} from '@deck.gl/core';
-import {ScenegraphNode, isWebGL2, pbr, log} from '@luma.gl/core';
-import {createGLTFObjects} from '@luma.gl/addons';
+import {Layer, project32, picking} from '@deck.gl/core';
+import {isWebGL2, pbr, log} from '@luma.gl/core';
+import {ScenegraphNode, createGLTFObjects} from '@luma.gl/addons';
 import GL from '@luma.gl/constants';
 import {waitForGLTFAssets} from './gltf-utils';
 
@@ -44,9 +44,11 @@ const defaultProps = {
   _animations: null,
 
   sizeScale: {type: 'number', value: 1, min: 0},
+  sizeMinPixels: {type: 'number', min: 0, value: 0},
+  sizeMaxPixels: {type: 'number', min: 0, value: Number.MAX_SAFE_INTEGER},
+
   getPosition: {type: 'accessor', value: x => x.position},
   getColor: {type: 'accessor', value: DEFAULT_COLOR},
-  opacity: {type: 'number', min: 0, max: 1, value: 1.0},
 
   // flat or pbr
   _lighting: 'flat',
@@ -203,7 +205,7 @@ export default class ScenegraphLayer extends Layer {
   }
 
   getLoadOptions() {
-    const modules = ['project32', 'picking'];
+    const modules = [project32, picking];
     const {_lighting, _imageBasedLightingEnvironment} = this.props;
 
     if (_lighting === 'pbr') {
@@ -250,7 +252,7 @@ export default class ScenegraphLayer extends Layer {
       this.state.animator.animate(context.animationProps.time);
     }
 
-    const {sizeScale, opacity, _composeModelMatrix} = this.props;
+    const {sizeScale, sizeMinPixels, sizeMaxPixels, opacity, _composeModelMatrix} = this.props;
     const numInstances = this.getNumInstances();
     this.state.scenegraph.traverse((model, {worldMatrix}) => {
       model.model.setInstanceCount(numInstances);
@@ -260,6 +262,8 @@ export default class ScenegraphLayer extends Layer {
         uniforms: {
           sizeScale,
           opacity,
+          sizeMinPixels,
+          sizeMaxPixels,
           enableOffsetModelMatrix: _composeModelMatrix,
           sceneModelMatrix: worldMatrix,
           // Needed for PBR (TODO: find better way to get it)

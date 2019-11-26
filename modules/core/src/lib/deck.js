@@ -35,9 +35,9 @@ import {
   createGLContext,
   trackContextState,
   setParameters,
+  Timeline,
   lumaStats
 } from '@luma.gl/core';
-import {Timeline} from '@luma.gl/addons';
 import {Stats} from 'probe.gl';
 import {EventManager} from 'mjolnir.js';
 
@@ -85,7 +85,7 @@ function getPropTypes(PropTypes) {
     drawPickingColors: PropTypes.bool,
 
     // Experimental props
-
+    _framebuffer: PropTypes.object,
     // Forces a redraw every animation frame
     _animate: PropTypes.bool
   };
@@ -106,6 +106,7 @@ const defaultProps = {
   controller: null, // Rely on external controller, e.g. react-map-gl
   useDevicePixels: true,
   touchAction: 'none',
+  _framebuffer: null,
   _animate: false,
 
   onWebGLInitialized: noop,
@@ -217,6 +218,11 @@ export default class Deck {
     if (this.deckRenderer) {
       this.deckRenderer.finalize();
       this.deckRenderer = null;
+    }
+
+    if (this.deckPicker) {
+      this.deckPicker.finalize();
+      this.deckPicker = null;
     }
 
     if (this.eventManager) {
@@ -351,63 +357,46 @@ export default class Deck {
     return this.viewManager.getViewports(rect);
   }
 
-  pickObject({x, y, radius = 0, layerIds = null}) {
-    this.stats.get('Pick Count').incrementCount();
-    this.stats.get('pickObject Time').timeStart();
-    const layers = this.layerManager.getLayers({layerIds});
-    const activateViewport = this.layerManager.activateViewport;
-    const selectedInfos = this.deckPicker.pickObject({
-      x,
-      y,
-      radius,
-      layers,
-      viewports: this.getViewports({x, y}),
-      activateViewport,
-      mode: 'query',
-      depth: 1
-    }).result;
-    this.stats.get('pickObject Time').timeEnd();
-    return selectedInfos.length ? selectedInfos[0] : null;
+  /* {x, y, radius = 0, layerIds = null, unproject3D} */
+  pickObject(opts) {
+    const infos = this._pick('pickObject', 'pickObject Time', opts).result;
+    return infos.length ? infos[0] : null;
   }
 
-  pickMultipleObjects({x, y, radius = 0, layerIds = null, depth = 10}) {
-    this.stats.get('Pick Count').incrementCount();
-    this.stats.get('pickMultipleObjects Time').timeStart();
-    const layers = this.layerManager.getLayers({layerIds});
-    const activateViewport = this.layerManager.activateViewport;
-    const selectedInfos = this.deckPicker.pickObject({
-      x,
-      y,
-      radius,
-      layers,
-      viewports: this.getViewports({x, y}),
-      activateViewport,
-      mode: 'query',
-      depth
-    }).result;
-    this.stats.get('pickMultipleObjects Time').timeEnd();
-    return selectedInfos;
+  /* {x, y, radius = 0, layerIds = null, unproject3D, depth = 10} */
+  pickMultipleObjects(opts) {
+    opts.depth = opts.depth || 10;
+    return this._pick('pickObject', 'pickMultipleObjects Time', opts).result;
   }
 
-  pickObjects({x, y, width = 1, height = 1, layerIds = null}) {
-    this.stats.get('Pick Count').incrementCount();
-    this.stats.get('pickObjects Time').timeStart();
-    const layers = this.layerManager.getLayers({layerIds});
-    const activateViewport = this.layerManager.activateViewport;
-    const infos = this.deckPicker.pickObjects({
-      x,
-      y,
-      width,
-      height,
-      layers,
-      viewports: this.getViewports({x, y, width, height}),
-      activateViewport
-    });
-    this.stats.get('pickObjects Time').timeEnd();
-    return infos;
+  /* {x, y, width = 1, height = 1, layerIds = null} */
+  pickObjects(opts) {
+    return this._pick('pickObjects', 'pickObjects Time', opts);
   }
 
   // Private Methods
+
+  _pick(method, statKey, opts) {
+    const {stats} = this;
+
+    stats.get('Pick Count').incrementCount();
+    stats.get(statKey).timeStart();
+
+    const infos = this.deckPicker[method](
+      Object.assign(
+        {
+          layers: this.layerManager.getLayers(opts),
+          viewports: this.getViewports(opts),
+          onViewportActive: this.layerManager.activateViewport
+        },
+        opts
+      )
+    );
+
+    stats.get(statKey).timeEnd();
+
+    return infos;
+  }
 
   // canvas, either string, canvas or `null`
   _createCanvas(props) {
@@ -487,6 +476,7 @@ export default class Deck {
       height,
       useDevicePixels,
       autoResizeDrawingBuffer,
+      autoResizeViewport: false,
       gl,
       onCreateContext: opts =>
         createGLContext(Object.assign({}, glOptions, opts, {canvas: this.canvas, debug})),
@@ -554,17 +544,7 @@ export default class Deck {
 
     if (_pickRequest.mode) {
       // perform picking
-      const {result, emptyInfo} = this.deckPicker.pickObject(
-        Object.assign(
-          {
-            layers: this.layerManager.getLayers(),
-            viewports: this.getViewports(_pickRequest),
-            activateViewport: this.layerManager.activateViewport,
-            depth: 1
-          },
-          _pickRequest
-        )
-      );
+      const {result, emptyInfo} = this._pick('pickObject', 'pickObject Time', _pickRequest);
       const shouldGenerateInfo = _pickRequest.callback || this.props.getTooltip;
       const pickedInfo = shouldGenerateInfo && (result.find(info => info.index >= 0) || emptyInfo);
       if (this.props.getTooltip) {
@@ -667,15 +647,13 @@ export default class Deck {
 
     this.props.onBeforeRender({gl});
 
-    const layers = this.layerManager.getLayers();
-    const activateViewport = this.layerManager.activateViewport;
-
     this.deckRenderer.renderLayers(
       Object.assign(
         {
-          layers,
+          target: this.props._framebuffer,
+          layers: this.layerManager.getLayers(),
           viewports: this.viewManager.getViewports(),
-          activateViewport,
+          onViewportActive: this.layerManager.activateViewport,
           views: this.viewManager.getViews(),
           pass: 'screen',
           redrawReason,
@@ -740,7 +718,10 @@ export default class Deck {
     // If initialViewState was set on creation, auto track position
     if (this.viewState) {
       this.viewState[params.viewId] = viewState;
-      this.viewManager.setProps({viewState});
+      if (!this.props.viewState) {
+        // Apply internal view state
+        this.viewManager.setProps({viewState: {...this.viewState}});
+      }
     }
   }
 
