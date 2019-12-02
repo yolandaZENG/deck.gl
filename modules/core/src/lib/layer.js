@@ -21,7 +21,6 @@
 /* eslint-disable react/no-direct-mutation-state */
 import {COORDINATE_SYSTEM} from './constants';
 import AttributeManager from './attribute/attribute-manager';
-import {removeLayerInSeer} from './seer-integration';
 import UniformTransitionManager from './uniform-transition-manager';
 import {diffProps, validateProps} from '../lifecycle/props';
 import {count} from '../utils/count';
@@ -631,8 +630,6 @@ export default class Layer extends Component {
     for (const extension of this.props.extensions) {
       extension.finalizeState.call(this, extension);
     }
-    // End lifecycle method
-    removeLayerInSeer(this.id);
   }
 
   // Calculates uniforms
@@ -657,7 +654,7 @@ export default class Layer extends Component {
     const {getPolygonOffset} = this.props;
     const offsets = (getPolygonOffset && getPolygonOffset(uniforms)) || [0, 0];
 
-    setParameters({polygonOffset: offsets});
+    setParameters(this.context.gl, {polygonOffset: offsets});
 
     // Call subclass lifecycle method
     withParameters(this.context.gl, parameters, () => {

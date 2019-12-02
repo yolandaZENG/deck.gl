@@ -687,6 +687,10 @@ export const docPages = generatePath([
             content: getDocUrl('api-reference/extensions/overview.md')
           },
           {
+            name: 'BrushingExtension',
+            content: getDocUrl('api-reference/extensions/brushing-extension.md')
+          },
+          {
             name: 'DataFilterExtension',
             content: getDocUrl('api-reference/extensions/data-filter-extension.md')
           },
@@ -695,8 +699,8 @@ export const docPages = generatePath([
             content: getDocUrl('api-reference/extensions/fp64-extension.md')
           },
           {
-            name: 'BrushingExtension',
-            content: getDocUrl('api-reference/extensions/brushing-extension.md')
+            name: 'PathStyleExtension',
+            content: getDocUrl('api-reference/extensions/path-style-extension.md')
           }
         ]
       },
