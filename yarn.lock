@@ -1715,9 +1715,9 @@
     math.gl "3.0.0"
 
 "@math.gl/web-mercator@^3.1.0-alpha":
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/@math.gl/web-mercator/-/web-mercator-3.1.1.tgz#4825cd2b847d7d1438a5114e7afacab18f1ae414"
-  integrity sha512-pzl58XEdHG/J49H1HfTXKuJqp7F971qcLHdJR7B9OJSjJlmoLBxDMETVFbOzHBsiwoIqTsZgJYHGwmLYIf2avQ==
+  version "3.1.0-alpha.2"
+  resolved "https://registry.yarnpkg.com/@math.gl/web-mercator/-/web-mercator-3.1.0-alpha.2.tgz#bc62baf57747cab981cccb882ec9709cf1d473e8"
+  integrity sha512-NMYu64ksLVuTpiPXaMVCYCYBUG8orIpl2H3/QY6lasA/6rUN/RV9Kqs25mu/aTDjOex7AXFjyc9plvpP5lvAiw==
   dependencies:
     "@babel/runtime" "^7.0.0"
     gl-matrix "^3.0.0"
@@ -1914,7 +1914,7 @@
     probe.gl "3.1.1"
     puppeteer "^1.16.0"
 
-"@turf/helpers@6.x":
+"@turf/helpers@6.x", "@turf/helpers@^6.1.4":
   version "6.1.4"
   resolved "https://registry.yarnpkg.com/@turf/helpers/-/helpers-6.1.4.tgz#d6fd7ebe6782dd9c87dca5559bda5c48ae4c3836"
   integrity sha512-vJvrdOZy1ngC7r3MDA7zIGSoIgyrkWcGnNIEaqn/APmw+bVLF2gAW7HIsdTxd12s5wQMqEpqIQrmrbRRZ0xC7g==
@@ -6988,10 +6988,10 @@ mapbox-gl@~0.54.0:
     tinyqueue "^2.0.0"
     vt-pbf "^3.1.1"
 
-martinez-polygon-clipping@^0.4.3:
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/martinez-polygon-clipping/-/martinez-polygon-clipping-0.4.3.tgz#a3971ddf1da147104b5d0fbbf68f728bb62885c1"
-  integrity sha512-3ZNS0ksKhWTLsmCUkNf+/UimndZ5U2cVOS0I+IjiwF+M23E77TmeOZSmbRJbfCoQUog/vcQ42s3DXrhgOhgPqw==
+martinez-polygon-clipping@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/martinez-polygon-clipping/-/martinez-polygon-clipping-0.5.0.tgz#d5c0fde26b76b49293249ceb2c4c4af4a3a79163"
+  integrity sha512-FvHURxJTieS4LEHL+aJmWbqCUBk2GrYU5zolgXNAQLJsjnAff7Hqqk5MM1Kl91FnPOcyiAs/cVey11bb0D7qug==
   dependencies:
     splaytree "^0.1.4"
     tinyqueue "^1.2.0"

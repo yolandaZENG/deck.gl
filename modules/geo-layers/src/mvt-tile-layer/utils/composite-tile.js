@@ -58,7 +58,7 @@ export default class CompositeTile {
     const newTiles = tileset.filter(tile => !this.tileset.has(getTileId(tile)));
 
     if (this._layer && (newTiles.length > 0)) {
-      this._layer = null;
+      this.resetLayer();
     }
 
     newTiles.forEach(tile => {

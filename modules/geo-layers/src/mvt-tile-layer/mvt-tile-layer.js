@@ -127,7 +127,7 @@ export default class MVTTileLayer extends TileLayer {
     const compositeTile = compositeTileCache.get(this.getLayerZoomLevel());
 
     if (compositeTile.getLayer()) {
-      return compositeTile.getLayer();
+      return [compositeTile.getLayer()];
     }
 
     compositeTileCache.resetLayers();
@@ -145,7 +145,7 @@ export default class MVTTileLayer extends TileLayer {
     );
 
     compositeTile.addLayer(layer);
-    return layer;
+    return [layer];
   }
 
   createWorker() {
