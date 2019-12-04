@@ -12,12 +12,12 @@ const defaultProps = {
 
 export default class MVTTileLayer extends TileLayer {
   initializeState() {
-    const {urlTemplate, uniquePropertyName} = this.props;
+    const {urlTemplates = [], uniquePropertyName} = this.props;
 
     this.state = {
       tiles: [],
       compositeTileCache: new CompositeTileCache(),
-      urlTemplate,
+      urlTemplates,
       uniquePropertyName,
       isLoaded: false,
       worker: this.createWorker(),
@@ -28,7 +28,9 @@ export default class MVTTileLayer extends TileLayer {
   getTileData(tileProperties) {
     const {worker} = this.state;
     const templateReplacer = (_, property) => tileProperties[property];
-    const tileURL = this.state.urlTemplate.replace(/\{ *([\w_-]+) *\}/g, templateReplacer);
+
+    const tileURLIndex = getTileURLIndex(tileProperties, this.state.urlTemplates.length);
+    const tileURL = this.state.urlTemplates[tileURLIndex].replace(/\{ *([\w_-]+) *\}/g, templateReplacer);
 
     return new Promise((resolve, reject) => {
       worker.postMessage({tileURL, tileProperties});
@@ -154,6 +156,10 @@ export default class MVTTileLayer extends TileLayer {
 
     return worker;
   }
+}
+
+function getTileURLIndex({x, y}, templatesLength) {
+  return Math.abs(x + y) % templatesLength;
 }
 
 MVTTileLayer.layerName = 'MVTTileLayer';
