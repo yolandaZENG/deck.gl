@@ -41,7 +41,8 @@
     "h3-js": "^3.6.0",
     "long": "^3.2.0",
     "pbf": "^3.2.0",
-    "s2-geometry": "^1.2.10"
+    "s2-geometry": "^1.2.10",
+    "webworkify-webpack": "^2.1.5"
   },
   "peerDependencies": {
     "@deck.gl/core": "^7.3.0-beta",
