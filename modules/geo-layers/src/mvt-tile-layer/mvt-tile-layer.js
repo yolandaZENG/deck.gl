@@ -1,8 +1,7 @@
 import TileLayer from '../tile-layer/tile-layer';
 import TileCache from '../tile-layer/utils/tile-cache';
 import CompositeTile from './utils/composite-tile';
-
-/* global Worker */
+import createInlineWorker from 'webworkify-webpack';
 
 const defaultProps = {
   ...TileLayer.defaultProps,
@@ -101,7 +100,7 @@ export default class MVTTileLayer extends TileLayer {
   }
 
   createWorker() {
-    const worker = new Worker('./workers/worker.js', {type: 'module'});
+    const worker = createInlineWorker(require.resolve('./workers/worker.js'));
     worker.onmessage = this.onMessageReceived.bind(this);
 
     return worker;
