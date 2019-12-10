@@ -2,6 +2,12 @@ import { VectorTile } from '@mapbox/vector-tile';
 import Protobuf from 'pbf';
 
 export class MVTWorker {
+  onMessage(ev, ctx) {
+    this.processEvent(ev).then(data => {
+      ctx.postMessage(data)
+    }) 
+  }
+
   processEvent(event) {
     const eventData = event.data;
 

@@ -1,12 +1,9 @@
 import { MVTWorker } from './mvt-worker';
 
-/* global self */
+const mvtWorkerInstance = new MVTWorker();
 
 export default self => {
-  const mvtWorkerInstance = new MVTWorker();
   self.onmessage = ev => {
-    mvtWorkerInstance.processEvent(ev).then(data => {
-      self.postMessage(data)
-    });
+    mvtWorkerInstance.onMessage(ev, self)
   };
 }
