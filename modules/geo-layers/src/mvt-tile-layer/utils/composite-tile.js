@@ -20,7 +20,7 @@ export default class CompositeTile {
       return this._featureManager.getData();
     }
 
-    return Promise.all(Array.from(this.tileset.values()).map(tile => tile.data)).then(allData => allData.flat());
+    return Promise.all(Array.from(this.tileset.values()).map(tile => tile.data)).then(allData => flatArray(allData));
   }
 
   getZoomLevel() {
@@ -99,4 +99,8 @@ function convertArrayToMap(arrayInstance, propertyInterpolator) {
   };
 
   return arrayInstance.reduce(arrayToMap, new Map());
+}
+
+function flatArray(arr) {
+  return arr.reduce((acc, val) => acc.concat(val), []);
 }
