@@ -15,7 +15,14 @@ export default class FeatureManager {
       const featureId = geojsonFeature.properties[this._uniquePropertyName];
 
       if (this._features.has(featureId)) {
-        this._features.get(featureId).combine(featureId, geojsonFeature);
+        try {
+          this._features.get(featureId).combine(featureId, geojsonFeature);
+        } catch(err) {
+          const randomNumber = Math.trunc(Math.random() * 100)
+          console.warn(`Feature failed to merge: ${featureId}. Adding it as an independent feature: ${featureId}-${randomNumber}.`)
+          this._features.set(`${featureId}-${randomNumber}`, new Feature(featureId, geojsonFeature));
+        }
+
         return;
       }
 
