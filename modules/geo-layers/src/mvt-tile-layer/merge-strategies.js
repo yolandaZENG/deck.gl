@@ -1,4 +1,4 @@
-import polygonUnion from '@turf/union';
+import polygonClipping from 'polygon-clipping';
 
 const mergePoint = function mergePoint(originalGeometry) {
   return originalGeometry;
@@ -32,22 +32,23 @@ const mergeMultiLineStringWithMultiLineString = function mergeMultiLineStringWit
 };
 
 const mergePolygonWithPolygon = function mergePolygonWithPolygon(originalGeometry, newGeometry) {
-  return polygonUnion(originalGeometry, newGeometry).geometry;
+  return {
+    type: 'MultiPolygon',
+    coordinates: polygonClipping.union(originalGeometry.coordinates, newGeometry.coordinates)
+  }
 };
 
 const mergePolygonWithMultiPolygon = function mergePolygonWithMultiPolygon(
   originalGeometry,
   newGeometry
 ) {
-  let mergedGeometry = originalGeometry;
+  let mergedGeometry = [originalGeometry.coordinates];
+  mergedGeometry = polygonClipping.union(mergedGeometry, newGeometry.coordinates);
 
-  for (const coords in newGeometry.coordinates) {
-    mergedGeometry = polygonUnion(mergedGeometry, {
-      coordinates: [newGeometry.coordinates[coords]]
-    }).geometry;
-  }
-
-  return mergedGeometry;
+  return {
+    type: 'MultiPolygon',
+    coordinates: mergedGeometry
+  };
 };
 
 const mergeStrategies = {
@@ -68,7 +69,7 @@ const mergeStrategies = {
     MultiPolygon: mergePolygonWithMultiPolygon
   },
   MultiPolygon: {
-    Polygon: mergePolygonWithMultiPolygon,
+    Polygon: (multiPolygon, polygon) => mergePolygonWithMultiPolygon(polygon, multiPolygon),
     MultiPolygon: mergePolygonWithPolygon
   }
 };
