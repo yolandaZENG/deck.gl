@@ -1,6 +1,8 @@
 import {WebMercatorViewport} from 'deck.gl';
+import AttributeManager from '@deck.gl/core/lib/attribute/attribute-manager';
 import * as dataSamples from '../../examples/layer-browser/src/data-samples';
 import {fp64} from '@luma.gl/core';
+import {gl} from '@deck.gl/test-utils';
 
 const {fp64LowPart} = fp64;
 const viewportProps = {
@@ -17,6 +19,52 @@ const viewport = new WebMercatorViewport(viewportProps);
 const viewportUpdated = new WebMercatorViewport(
   Object.assign({}, viewportProps, {zoom: viewportProps.zoom - 3})
 );
+
+export function buildDataProp(opts) {
+  const pointCount = opts.positions.length / 2;
+  const dataProp = [];
+  for (let i = 0; i < pointCount; i++) {
+    const dataItem = {};
+    dataItem.position = opts.positions.slice(i * 2, i * 2 + 2);
+    for (const weight in opts.weights) {
+      dataItem[weight] = opts.weights[weight].values.slice(i * 3, i * 3 + 3);
+    }
+    dataProp.push(dataItem);
+  }
+  return dataProp;
+}
+
+export function buildAttributes(opts) {
+  const {weights} = opts;
+
+  const data = opts.data || buildDataProp(opts);
+  const numInstances = data.length;
+
+  // const weightIds = Object.keys(weights);
+  const attributeManager = new AttributeManager(gl);
+  const accessorProps = {};
+  attributeManager.add({
+    positions: {size: 3, accessor: 'getPosition', type: gl.DOUBLE}
+  });
+  accessorProps.getPosition = opts.getPosition || (x => x.position);
+  for (const weightId in weights) {
+    const accessor = `get${weightId}`;
+    attributeManager.add({
+      [weightId]: {size: 3, accessor}
+    });
+    accessorProps[accessor] = x => x[weightId];
+  }
+  attributeManager.update({
+    data,
+    numInstances,
+    props: accessorProps
+  });
+  return {
+    attributes: attributeManager.getAttributes(),
+    vertexCount: numInstances,
+    data
+  };
+}
 
 let positions = [
   // Inside the current viewport bounds
@@ -60,7 +108,7 @@ const fixture = {
         1,
         500 // gets aggregated when viewport is zoomed out
       ],
-      size: 3,
+      size: 1,
       needMin: true,
       needMax: true
     }
@@ -71,9 +119,13 @@ const fixture = {
   changeFlags: {
     dataChanged: true
   },
-  viewport,
-  projectPoints: true
+  moduleSettings: {viewport},
+  projectPoints: true,
+  translation: [1, -1],
+  scaling: [viewport.width / 2, -viewport.height / 2, 1]
 };
+
+Object.assign(fixture, buildAttributes(fixture));
 
 const positionsUpdated = [
   // Outside the current viewport bounds
@@ -141,7 +193,7 @@ const weightsUpdated = {
 const fixtureUpdated = Object.assign({}, fixture, {
   positions: positionsUpdated,
   weights: weightsUpdated,
-  viewport: viewportUpdated
+  moduleSettings: {viewport: viewportUpdated}
 });
 
 function generateRandomGridPoints(pointCount) {
@@ -164,6 +216,7 @@ function generateRandomGridPoints(pointCount) {
   const pos = new Array(opts.count * 2);
   const posLow = new Array(opts.count * 2);
   const weightValues = [];
+  const data = [];
   for (let i = 0; i < opts.count; i++) {
     pos[i * 2] = Math.floor(Math.random() * opts.width) + opts.x;
     pos[i * 2 + 1] = Math.floor(Math.random() * opts.height) + opts.y;
@@ -172,16 +225,19 @@ function generateRandomGridPoints(pointCount) {
     // floor to avoid gpu precession issues
     const weights = [Math.random(), Math.random(), Math.random()].map(x => Math.floor(x * 10));
     weightValues.push(...weights);
+    data.push({
+      position: [pos[i * 2], pos[i * 2 + 1]],
+      weight1: weights
+    });
   }
   const weights = {
     weight1: {
       values: weightValues,
-      size: 3,
       needMin: true,
       needMax: true
     }
   };
-  return {positions: pos, positions64xyLow: posLow, weights};
+  return {positions: pos, positions64xyLow: posLow, weights, data};
 }
 
 const X = 0;
@@ -257,7 +313,7 @@ const fixture2 = {
   changeFlags: {
     dataChanged: true
   },
-  viewport: viewport2
+  moduleSettings: {viewport: viewport2}
 };
 
 const fixtureWorldSpace = {
@@ -317,5 +373,6 @@ export const GridAggregationData = {
   fixture2,
   fixtureUpdated,
   generateRandomGridPoints,
-  fixtureWorldSpace
+  fixtureWorldSpace,
+  buildAttributes
 };

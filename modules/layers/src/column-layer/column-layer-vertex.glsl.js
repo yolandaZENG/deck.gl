@@ -27,7 +27,7 @@ attribute vec3 normals;
 
 attribute vec3 instancePositions;
 attribute float instanceElevations;
-attribute vec2 instancePositions64xyLow;
+attribute vec3 instancePositions64Low;
 attribute vec4 instanceFillColors;
 attribute vec4 instanceLineColors;
 attribute float instanceStrokeWidths;
@@ -53,7 +53,7 @@ varying vec4 vColor;
 
 void main(void) {
   geometry.worldPosition = instancePositions;
-  
+
   vec4 color = isStroke ? instanceLineColors : instanceFillColors;
   // rotate primitive position and normal
   mat2 rotationMatrix = mat2(cos(angle), sin(angle), -sin(angle), cos(angle));
@@ -77,14 +77,15 @@ void main(void) {
   float dotRadius = radius * coverage * shouldRender;
 
   geometry.normal = project_normal(vec3(rotationMatrix * normals.xy, normals.z));
+  geometry.pickingColor = instancePickingColors;
 
   // project center of column
   vec3 centroidPosition = vec3(instancePositions.xy, instancePositions.z + elevation);
-  vec2 centroidPosition64xyLow = instancePositions64xyLow;
+  vec3 centroidPosition64Low = instancePositions64Low;
   vec3 pos = vec3(project_size(rotationMatrix * positions.xy * strokeOffsetRatio + offset) * dotRadius, 0.);
   DECKGL_FILTER_SIZE(pos, geometry);
 
-  gl_Position = project_position_to_clipspace(centroidPosition, centroidPosition64xyLow, pos, geometry.position);
+  gl_Position = project_position_to_clipspace(centroidPosition, centroidPosition64Low, pos, geometry.position);
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
 
   // Light calculations
@@ -95,8 +96,5 @@ void main(void) {
     vColor = vec4(color.rgb, color.a * opacity);
   }
   DECKGL_FILTER_COLOR(vColor, geometry);
-
-  // Set color to be rendered to picking fbo (also used to check for selection highlight).
-  picking_setPickingColor(instancePickingColors);
 }
 `;

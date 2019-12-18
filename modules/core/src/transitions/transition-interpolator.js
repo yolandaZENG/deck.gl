@@ -80,7 +80,17 @@ export default class TransitionInterpolator {
    * @returns {object} - a list of interpolated viewport props
    */
   interpolateProps(startProps, endProps, t) {
-    assert(false, 'interpolateProps is not implemented');
+    return endProps;
+  }
+
+  /**
+   * Returns transition duration
+   * @param startProps {object} - a list of starting viewport props
+   * @param endProps {object} - a list of target viewport props
+   * @returns {Number} - transition duration in milliseconds
+   */
+  getDuration(startProps, endProps) {
+    return endProps.transitionDuration;
   }
 
   _checkRequiredProps(props) {

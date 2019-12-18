@@ -8,7 +8,8 @@ import {
   OrbitView,
   AmbientLight,
   DirectionalLight,
-  LightingEffect
+  LightingEffect,
+  PostProcessEffect
 } from '@deck.gl/core';
 import {SolidPolygonLayer} from '@deck.gl/layers';
 
@@ -22,6 +23,8 @@ import LayerControls from './components/layer-controls';
 
 import LAYER_CATEGORIES from './examples';
 import Map from './map';
+
+import {ink} from '@luma.gl/shadertools';
 
 const AMBIENT_LIGHT = new AmbientLight({
   color: [255, 255, 255],
@@ -51,6 +54,8 @@ const GLOBAL_LIGHTING_WITH_SHADOW = new LightingEffect({
   DIRECTIONAL_LIGHT_SHADOW
 });
 
+const POST_PROCESS = new PostProcessEffect(ink, {strength: 0.5});
+
 const LAND_COVER = [[[-122.3, 37.7], [-122.3, 37.9], [-122.6, 37.9], [-122.6, 37.7]]];
 
 // ---- View ---- //
@@ -65,6 +70,7 @@ export default class App extends PureComponent {
       },
       settings: {
         shadow: false,
+        postProcessing: false,
         orthographic: false,
         multiview: false,
         infovis: false,
@@ -124,7 +130,7 @@ export default class App extends PureComponent {
   }
 
   _multiDepthPick({x, y}) {
-    this.mapRef.current.pickMultipleObjects({x, y});
+    this.mapRef.current.pickMultipleObjects({x, y, unproject3D: true});
   }
 
   _renderExampleLayer(example, settings, index) {
@@ -191,7 +197,7 @@ export default class App extends PureComponent {
 
     switch (coordinateSystem) {
       case COORDINATE_SYSTEM.METER_OFFSETS:
-      case COORDINATE_SYSTEM.IDENTITY:
+      case COORDINATE_SYSTEM.CARTESIAN:
         const {
           settings: {rotationZ, rotationX}
         } = this.state;
@@ -221,7 +227,11 @@ export default class App extends PureComponent {
       });
     } else if (multiview) {
       views = [
-        new FirstPersonView({id: 'first-person', height: '50%', position: [0, 0, 50]}),
+        new FirstPersonView({
+          id: 'first-person',
+          height: '50%',
+          viewState: {id: 'basemap', position: [0, 0, 50]}
+        }),
         new MapView({
           id: 'basemap',
           controller: true,
@@ -239,9 +249,12 @@ export default class App extends PureComponent {
 
   _getEffects() {
     // TODO
-    const {shadow} = this.state.settings;
+    const {shadow, postProcessing} = this.state.settings;
 
-    return [shadow ? GLOBAL_LIGHTING_WITH_SHADOW : GLOBAL_LIGHTING];
+    return [
+      shadow ? GLOBAL_LIGHTING_WITH_SHADOW : GLOBAL_LIGHTING,
+      postProcessing && POST_PROCESS
+    ].filter(Boolean);
   }
 
   render() {

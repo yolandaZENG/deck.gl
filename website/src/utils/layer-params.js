@@ -1,5 +1,7 @@
 const blackList = ['coordinateSystem', 'modelMatrix'];
 
+const ASYNC_ORIGINAL = Symbol.for('asyncPropOriginal');
+
 /* eslint-disable complexity */
 /*
  * infer parameter type from a prop
@@ -26,7 +28,7 @@ export function propToParam(key, propType, value) {
       return {...param, type: 'range', step: param.max === 100 ? 1 : 0.01};
     case 'accessor': {
       const result = {...param, type: 'function'};
-      let altValue = propType.value;
+      const altValue = propType.value;
       let altType = typeof altValue;
       if (Array.isArray(altValue) && key.endsWith('Color')) {
         altType = 'color';
@@ -50,7 +52,7 @@ export function propToParam(key, propType, value) {
       if (/mapping|domain|range/i.test(key)) {
         return {...param, type: 'json'};
       }
-      if (propType.async) {
+      if (propType && propType.async) {
         return {...param, type: 'link'};
       }
       break;
@@ -76,7 +78,7 @@ export function getLayerParams(layer, propParameters = {}) {
       const param = propToParam(
         key,
         LAYER_PROPTYPES,
-        layer.props._asyncPropOriginalValues[key] || layer.props[key]
+        layer.props[ASYNC_ORIGINAL][key] || layer.props[key]
       );
       if (param) {
         paramsArray.push(param);

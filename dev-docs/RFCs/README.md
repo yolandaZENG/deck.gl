@@ -14,12 +14,13 @@ Also see luma.gl roadmaps, such as the GPGPU roadmap
 
 | Roadmap                                                            | Status       | Description |
 | ---                                                                | ---          | ---         |
+| [**GPU Table Roadmap**](../roadmaps/gpu-table-roadmap.md)  | Draft        | Evolution of the `GPUTable` class across deck.gl v8.x releases |
 | [**API Evolution Roadmap**](../roadmaps/api-evolution-roadmap.md)  | Draft        | Ideas for changes/extensions to the core deck.gl API |
 | [**New Layers Roadmap**](../roadmaps/layers-roadmap.md)            | Draft        | Ideas for new layers |
 | [**Animation Roadmap**](../roadmaps/animation-roadmap.md)          | Draft        | Animation API roadmap |
 | [**Performance Roadmap**](../roadmaps/performance-roadmap.md)      | Draft        | Performance Improvements |
 | [**Infovis Roadmap**](../roadmaps/infovis-roadmap.md)              | Draft        | Infovis (non-geospatial) features roadmap |
-| [**Reduce Distribution Size**](../roadmaps/dist-size-roadmap.md)   | Ongoing      | Reduce size of distribution and the bundle size of applications using deck.gl |
+| [**Reduce Distribution Size**](../roadmaps/dist-size-roadmap.md)   | Implemented  | Reduce size of distribution and the bundle size of applications using deck.gl |
 | [**Pure JS and Scripting Roadmap**](../roadmaps/purejs-roadmap.md) | Implemented  | Support for Scripting and Pure-JS APIs |
 
 
@@ -29,12 +30,15 @@ These RFCs are not yet associated with any specific release.
 
 | RFC | Author | Status | Description |
 | --- | --- | --- | --- |
+| [**Mobile Platform RFC**](vNext/mobile-platform-support-rfc.md) | @ibgreen, @tsherif, @pessimistress | **Draft** | Strategy for using deck.gl in native mobile clients. |
 | [**Reduce Repository Size**](vNext/reduce-repo-size-rfc.md) | @ibgreen | **Draft** | Reduce size of deck.gl github repository |
 | [**Projection Mode Improvements**](vNext/projection-mode-improvements-rfc.md) | @ibgreen @pessimistress | **Draft** | Improvements to projection system |
 | [**Composite Layer Customization**](vNext/composite-layer-customization-rfc.md) | @ibgreen | **Draft** | Improvements to customizing composite layers |
-| **[Render Layer to Texture](vNext/render-layer-to-texture-rfc.md)** | TBD | Proposed | Allow layers to render to texture and then use texture in subsequent layers.  |
+| [**Render Layer to Texture**](vNext/render-layer-to-texture-rfc.md) | TBD | Proposed | Allow layers to render to texture and then use texture in subsequent layers.  |
 | [**Layer Extension**](vNext/layer-extension-rfc.md) | @pessimistress | **Draft** | Adding optional functionalities to layers on-demand |
+| [**Fixed Frame Coordinate System**](vNext/fixed-frame-coordinates-rfc.md) | @ibgreen | Draft | Add support for fixed frame (WGS84 cartesian) coordinates |
 | [**Component Wrapping System**](vNext/component-wrapping-rfc.md) | @ibgreen | **Draft** | A unified system for exposing JS components to Python/Jupyter Notebook/JSON etc. |
+| [**Projection System Expansion**](v8.0/projection-system-expansion-rfc.md) | @pessimistress | **Draft** | Changes to the projection system to support various data and projection formats. |
 
 Possible other animation related RFCs:
 - integration with event handling (enter leave triggers for animations)
@@ -49,17 +53,17 @@ Possible other animation related RFCs:
 | [**Unified ViewState**](vNext/view-state-rfc.md) | @ibgreen | **Deferred** | Controversial proposal for an even more Unified View/Controller Architecture. Review again after all Controller/Multiview RFCs have been approved/implemented |
 
 
-## v7.x Binary Data RFCs
+## v8.x Binary Data RFCs
 
 Group of related RFCs loosely targeted for 7.x releases.
 
 | RFC | Author | Status | Description |
 | --- | ---    | ---    | ---         |
-| [**Binary Data RFC**](v7.x-binary/binary-data-rfc.md) | @ibgreen @pessimistress | **Draft** | Support binary data as input to deck.gl layers. |
 | [**GLSL Accessor RFC**](/dev-docs/v7.x-binary/glsl-accessor-rfc.md) | @ibgreen | **Draft** | Allow apps to define GLSL accessors to directly access injected columnar data or implement advanved effects |
 | [**Texture Attribute RFC**](/dev-docs/v7.x-binary/texture-attribute-rfc.md) | @ibgreen | **Draft** | Enable variable-primitive layers_ to read _descriptive attributes_ from a binary column. |
 | [**GPU Data Frame Support**](/dev-docs/v7.x-binary/gpu-data-frame-rfc.md) | @ibgreen | **Draft** | Proposal for enabling deck.gl to apply data frame filters on GPU. |
 | [**Chunked Data Support**](/dev-docs/v7.x-binary/chunked-data-rfc.md) | @ibgreen | **Draft** | Support Chunked Columnar data on the GPU. |
+| [**Binary Support Improvements**](/dev-docs/v7.x-binary/chunked-data-rfc.md) | @pessimistress | **Draft** | API change for more intuitive binary data usage. |
 
 
 ## v7.x RFCs
@@ -68,6 +72,7 @@ RFCs loosely targeted for 7.x releases. Also see [luma.gl RFCs](https://github.c
 
 | RFC | Author | Status | Description |
 | --- | ---    | ---    | ---         |
+| [**Binary Data RFC**](v7.x-binary/binary-data-rfc.md) | @ibgreen @pessimistress | **Draft** | Support binary data as input to deck.gl layers. |
 | [**Imperative API Improvements**](v7.x/imperative-api-rfc.md) | @ibgreen | **draft** | Potential API improvements for imperative programming. |
 | [**Partial Updates**](vNext/partial-updates-rfc.md) | @ibgreen @georgios-uber | **draft** | Allow partial updates of vertex attributes to support high-performance editing. |
 | [**Project / Unproject Improvements**](v7.x/project-unproject-rfc.md) | @ibgreen | **Draft** | Consolidating, generalizing and simplifying JS `project`/`unproject` API, covering uses from new features such as MultiView. |
@@ -83,6 +88,17 @@ These RFCS were implemented in v7.1.
 | --- | ---    | ---    | ---         |
 | [**GPU Acceleration in GridLayer**](v7.1/gpu-grid-layer.md) | @1chandu | **Implemented** | GPU Accelerated aggregation support in GridLayer. |
 
+
+## v7.2 RFCs
+
+| RFC | Author | Status | Description |
+| --- | ---    | ---    | ---         |
+| [**Layer Culling**](v7.x/layer-culling-rfc.md) | @ibgreen | **Draft** | Implement Frustum Culling for deck.gl layers, initially as opt-in system|
+
+## v7.1 RFCs
+
+| RFC | Author | Status | Description |
+| --- | ---    | ---    | ---         |
 
 ## v7.0 RFCs
 

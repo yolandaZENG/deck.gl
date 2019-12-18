@@ -3,10 +3,12 @@
 A shader library facilitates creating shaders that work seamlessly with deck.gl. The `modules` parameter passed to the [Model](https://github.com/uber/luma.gl/blob/master/docs/api-reference/core/model.md) class can dynamically include parts from this library into your own GLSL code:
 
 ```js
+import {picking, project32, gouraudLighting} from '@deck.gl/core';
+
 const model = new Model(gl, {
   vs: '// vertex shader GLSL source'
   fs: '// fragment shader GLSL source',
-  modules: ['picking', 'project', 'lighting'] // list of optional module names
+  modules: [picking, project32, gouraudLighting] // list of optional module names
 });
 ```
 
@@ -32,8 +34,8 @@ The `project` module also has two extensions, [project32](/docs/shader-modules/p
 
 A simple lighting package is provided in deck.gl, supporting a single directional light in addition to ambient light. Turning on lighting requires normals to be provided for each vertex. There are two flavors:
 
-- [gouraudlighting](https://github.com/uber/luma.gl/blob/master/modules/shadertools/src/modules/phong-lighting/phong-lighting.js) - for lighting calculated in the vertex shader
-- [phonglighting](https://github.com/uber/luma.gl/blob/master/modules/shadertools/src/modules/phong-lighting/phong-lighting.js) - for lighting calculated in the fragment shader
+- [gouraudLighting](https://github.com/uber/luma.gl/blob/master/modules/shadertools/src/modules/phong-lighting/phong-lighting.js) - for lighting calculated in the vertex shader
+- [phongLighting](https://github.com/uber/luma.gl/blob/master/modules/shadertools/src/modules/phong-lighting/phong-lighting.js) - for lighting calculated in the fragment shader
 
 
 #### fp64
@@ -138,6 +140,7 @@ Arguments:
 - `vec3 normal` - The normal at the current vertex in common space. Only populated for 3D layers.
 - `vec2 uv` - The uv position at the current vertex.
 - `vec4 position` - The position of the current vertex in common space. Populated during projection.
+- `vec3 pickingColor` - The picking color of the current vertex.
 
 ### FragmentGeometry struct
 

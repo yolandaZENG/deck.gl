@@ -18,18 +18,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {PhongMaterial} from '@luma.gl/core';
-import {CompositeLayer, log} from '@deck.gl/core';
+import {log} from '@deck.gl/core';
 import {ColumnLayer} from '@deck.gl/layers';
 
 import {defaultColorRange} from '../utils/color-utils';
 
 import {pointToHexbin} from './hexagon-aggregator';
 import CPUAggregator from '../utils/cpu-aggregator';
+import AggregationLayer from '../aggregation-layer';
 
 function nop() {}
-
-const defaultMaterial = new PhongMaterial();
 
 const defaultProps = {
   // color
@@ -61,10 +59,13 @@ const defaultProps = {
   hexagonAggregator: pointToHexbin,
   getPosition: {type: 'accessor', value: x => x.position},
   // Optional material for 'lighting' shader module
-  material: defaultMaterial
+  material: true,
+
+  // data filter
+  _filterData: {type: 'function', value: null, optional: true}
 };
 
-export default class HexagonLayer extends CompositeLayer {
+export default class HexagonLayer extends AggregationLayer {
   initializeState() {
     const cpuAggregator = new CPUAggregator({
       getAggregator: props => props.hexagonAggregator,
@@ -75,17 +76,24 @@ export default class HexagonLayer extends CompositeLayer {
       cpuAggregator,
       aggregatorState: cpuAggregator.state
     };
+    const attributeManager = this.getAttributeManager();
+    attributeManager.add({
+      positions: {size: 3, accessor: 'getPosition'}
+    });
+    // color and elevation attributes can't be added as attributes
+    // they are calcualted using 'getValue' accessor that takes an array of pints.
   }
 
-  updateState({oldProps, props, changeFlags}) {
+  updateState(opts) {
+    super.updateState(opts);
     const {cpuAggregator} = this.state;
     const oldLayerData = cpuAggregator.state.layerData;
     this.setState({
       // make a copy of the internal state of cpuAggregator for testing
-      aggregatorState: cpuAggregator.updateState(
-        {oldProps, props, changeFlags},
-        this.context.viewport
-      )
+      aggregatorState: cpuAggregator.updateState(opts, {
+        viewport: this.context.viewport,
+        attributes: this.getAttributes()
+      })
     });
 
     if (oldLayerData !== cpuAggregator.state.layerData) {
@@ -109,7 +117,7 @@ export default class HexagonLayer extends CompositeLayer {
 
       // transform to space coordinates
       const {viewport} = this.context;
-      const {pixelsPerMeter} = viewport.getDistanceScales();
+      const {unitsPerMeter} = viewport.getDistanceScales();
       const spaceCoord0 = this.projectFlat(vertex0);
       const spaceCoord3 = this.projectFlat(vertex3);
 
@@ -120,7 +128,7 @@ export default class HexagonLayer extends CompositeLayer {
 
       // Calculate angle that the perpendicular hexagon vertex axis is tilted
       angle = ((Math.acos(dx / dxy) * -Math.sign(dy)) / Math.PI) * 180 + 90;
-      radius = dxy / 2 / pixelsPerMeter[0];
+      radius = dxy / 2 / unitsPerMeter[0];
     }
 
     this.setState({angle, radius});

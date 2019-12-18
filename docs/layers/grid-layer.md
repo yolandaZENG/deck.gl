@@ -68,11 +68,11 @@ new GridLayer({});
 To use pre-bundled scripts:
 
 ```html
-<script src="https://unpkg.com/deck.gl@^7.0.0/dist.min.js"></script>
+<script src="https://unpkg.com/deck.gl@^8.0.0/dist.min.js"></script>
 <!-- or -->
-<script src="https://unpkg.com/@deck.gl/core@^7.0.0/dist.min.js"></script>
-<script src="https://unpkg.com/@deck.gl/layers@^7.0.0/dist.min.js"></script>
-<script src="https://unpkg.com/@deck.gl/aggregation-layers@^7.0.0/dist.min.js"></script>
+<script src="https://unpkg.com/@deck.gl/core@^8.0.0/dist.min.js"></script>
+<script src="https://unpkg.com/@deck.gl/layers@^8.0.0/dist.min.js"></script>
+<script src="https://unpkg.com/@deck.gl/aggregation-layers@^8.0.0/dist.min.js"></script>
 ```
 
 ```js
@@ -167,6 +167,11 @@ larger than the elevationUpperPercentile will be hidden.
 Filter cells and re-calculate elevation by `elevationLowerPercentile`. Cells with elevation value
 smaller than the elevationLowerPercentile will be hidden.
 
+##### `colorScaleType` (String, optional)
+
+* Default: 'quantize'
+
+Scaling function used to determine the color of the grid cell, default value is 'quantize'. Supported Values are 'quantize', 'linear', 'quantile' and 'ordinal'.
 
 ##### `fp64` (Boolean, optional)
 
@@ -184,10 +189,10 @@ When set to true, aggregation is performed on GPU, provided other conditions are
 
 ##### `material` (Object, optional)
 
-* Default: `new PhongMaterial()`
+* Default: `true`
 
 This is an object that contains material props for [lighting effect](/docs/effects/lighting-effect.md) applied on extruded polygons.
-Check [PhongMaterial](https://github.com/uber/luma.gl/tree/7.0-release/docs/api-reference/core/materials/phong-material.md) for more details.
+Check [the lighting guide](/docs/developer-guide/using-lighting.md#constructing-a-material-instance) for configurable settings.
 
 
 ### Data Accessors
@@ -448,7 +453,13 @@ When following percentile props are set, it requires sorting of aggregated value
 
 #### Color and Elevation Props
 
-When `getColorValue` and `getElevationValue` are set to a custom value other than their default values, aggregation will fallback to CPU. For GPU Aggregation, use `getColorWeight`, `colorAggregation`, `getElevationWeight` and `elevationAggregation`.
+When `colorScaleType` props is set to a 'quantile' or 'ordinal', aggregation will fallback to CPU. For GPU Aggregation, use 'quantize', 'linear'.
+
+#### Color Scale Type Props
+
+When following percentile props are set, it requires sorting of aggregated values, which cannot be supported when aggregating on GPU.
+
+* `lowerPercentile`, `upperPercentile`, `elevationLowerPercentile` and `elevationUpperPercentile`.
 
 ### Domain setting callbacks
 

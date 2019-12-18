@@ -24,7 +24,7 @@ export default `\
 attribute vec2 positions;
 
 attribute vec3 instancePositions;
-attribute vec2 instancePositions64xyLow;
+attribute vec3 instancePositions64Low;
 attribute float instanceSizes;
 attribute float instanceAngles;
 attribute vec4 instanceColors;
@@ -60,6 +60,7 @@ vec2 rotate_by_angle(vec2 vertex, float angle) {
 void main(void) {
   geometry.worldPosition = instancePositions;
   geometry.uv = positions;
+  geometry.pickingColor = instancePickingColors;
   uv = positions;
 
   vec2 iconSize = instanceIconFrames.zw;
@@ -78,10 +79,10 @@ void main(void) {
 
   pixelOffset = rotate_by_angle(pixelOffset, instanceAngles) * instanceScale;
   pixelOffset += instancePixelOffset;
+  pixelOffset.y *= -1.0;
   
   if (billboard)  {
-    pixelOffset.y *= -1.0;
-    gl_Position = project_position_to_clipspace(instancePositions, instancePositions64xyLow, vec3(0.0), geometry.position); 
+    gl_Position = project_position_to_clipspace(instancePositions, instancePositions64Low, vec3(0.0), geometry.position); 
     vec3 offset = vec3(pixelOffset, 0.0);
     DECKGL_FILTER_SIZE(offset, geometry);
     gl_Position.xy += project_pixel_size_to_clipspace(offset.xy);
@@ -89,7 +90,7 @@ void main(void) {
   } else {
     vec3 offset_common = vec3(project_pixel_size(pixelOffset), 0.0);
     DECKGL_FILTER_SIZE(offset_common, geometry);
-    gl_Position = project_position_to_clipspace(instancePositions, instancePositions64xyLow, offset_common, geometry.position); 
+    gl_Position = project_position_to_clipspace(instancePositions, instancePositions64Low, offset_common, geometry.position); 
   }
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
 
@@ -99,11 +100,8 @@ void main(void) {
     (positions.xy + 1.0) / 2.0
   ) / iconsTextureDim;
 
-  vTextureCoords.y = 1.0 - vTextureCoords.y;
-
   vColor = vec4(instanceColors.rgb, instanceColors.a * opacity);
   DECKGL_FILTER_COLOR(vColor, geometry);
-  picking_setPickingColor(instancePickingColors);
 
   vGamma = gamma / (sizeScale * iconSize.y);
 }

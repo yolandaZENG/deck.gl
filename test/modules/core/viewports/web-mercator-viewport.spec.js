@@ -139,26 +139,10 @@ test('WebMercatorViewport.getScales', t => {
   for (const vc of TEST_VIEWPORTS) {
     const viewport = new WebMercatorViewport(vc.mapState);
     const distanceScales = viewport.getDistanceScales();
-    t.ok(Array.isArray(distanceScales.metersPerPixel), 'metersPerPixel defined');
-    t.ok(Array.isArray(distanceScales.pixelsPerMeter), 'pixelsPerMeter defined');
-    t.ok(Array.isArray(distanceScales.degreesPerPixel), 'degreesPerPixel defined');
-    t.ok(Array.isArray(distanceScales.pixelsPerDegree), 'pixelsPerDegree defined');
-  }
-  t.end();
-});
-
-test('WebMercatorViewport.meterDeltas', t => {
-  config.EPSILON = LNGLAT_TOLERANCE;
-
-  for (const vc of TEST_VIEWPORTS) {
-    const viewport = new WebMercatorViewport(vc.mapState);
-    for (const tc of TEST_VIEWPORTS) {
-      const coordinate = [tc.mapState.longitude, tc.mapState.latitude, 0];
-      const deltaLngLat = viewport.metersToLngLatDelta(coordinate);
-      const deltaMeters = viewport.lngLatDeltaToMeters(deltaLngLat);
-      t.comment(`Comparing [${deltaMeters}] to [${coordinate}]`);
-      t.ok(equals(deltaMeters, coordinate), 'deltaLngLat to deltaMeters');
-    }
+    t.ok(Array.isArray(distanceScales.metersPerUnit), 'metersPerCommonUnit defined');
+    t.ok(Array.isArray(distanceScales.unitsPerMeter), 'commonUnitsPerMeter defined');
+    t.ok(Array.isArray(distanceScales.degreesPerUnit), 'degreesPerCommonUnit defined');
+    t.ok(Array.isArray(distanceScales.unitsPerDegree), 'commonUnitsPerDegree defined');
   }
   t.end();
 });

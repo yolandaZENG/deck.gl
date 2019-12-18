@@ -1,6 +1,5 @@
 import LinearInterpolator from '../transitions/linear-interpolator';
 import Transition from '../transitions/transition';
-import assert from '../utils/assert';
 
 const noop = () => {};
 
@@ -22,7 +21,6 @@ const DEFAULT_PROPS = {
 
 export default class TransitionManager {
   constructor(ControllerState, props = {}) {
-    assert(ControllerState);
     this.ControllerState = ControllerState;
     this.props = Object.assign({}, DEFAULT_PROPS, props);
     this.propsInTransition = null;
@@ -83,7 +81,10 @@ export default class TransitionManager {
   // Helper methods
 
   _isTransitionEnabled(props) {
-    return props.transitionDuration > 0 && props.transitionInterpolator;
+    const {transitionDuration, transitionInterpolator} = props;
+    return (
+      (transitionDuration > 0 || transitionDuration === 'auto') && Boolean(transitionInterpolator)
+    );
   }
 
   _isUpdateDueToCurrentTransition(props) {
@@ -109,10 +110,14 @@ export default class TransitionManager {
   }
 
   _triggerTransition(startProps, endProps) {
-    assert(this._isTransitionEnabled(endProps), 'Transition is not enabled');
-
     const startViewstate = new this.ControllerState(startProps);
     const endViewStateProps = new this.ControllerState(endProps).shortestPathFrom(startViewstate);
+
+    // update transitionDuration for 'auto' mode
+    const {transitionInterpolator} = endProps;
+    const duration = transitionInterpolator.getDuration
+      ? transitionInterpolator.getDuration(startProps, endProps)
+      : endProps.transitionDuration;
 
     const initialProps = endProps.transitionInterpolator.initializeProps(
       startProps,
@@ -120,8 +125,9 @@ export default class TransitionManager {
     );
 
     this.propsInTransition = {};
+    this.duration = duration;
     this.transition.start({
-      duration: endProps.transitionDuration,
+      duration,
       easing: endProps.transitionEasing,
       interpolator: endProps.transitionInterpolator,
       interruption: endProps.transitionInterruption,

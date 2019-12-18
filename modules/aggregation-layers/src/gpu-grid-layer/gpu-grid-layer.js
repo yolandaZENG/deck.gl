@@ -18,17 +18,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {PhongMaterial} from '@luma.gl/core';
-import {CompositeLayer, log} from '@deck.gl/core';
+import {Buffer} from '@luma.gl/core';
+import GL from '@luma.gl/constants';
+import {log} from '@deck.gl/core';
 
 import GPUGridAggregator from '../utils/gpu-grid-aggregation/gpu-grid-aggregator';
 import {AGGREGATION_OPERATION} from '../utils/aggregation-operation-utils';
-import {pointToDensityGridData} from '../utils/gpu-grid-aggregation/grid-aggregation-utils';
 import {defaultColorRange, colorRangeToFlatArray} from '../utils/color-utils';
 import GPUGridCellLayer from './gpu-grid-cell-layer';
 import {pointToDensityGridDataCPU} from './../cpu-grid-layer/grid-aggregator';
+import GridAggregationLayer from '../grid-aggregation-layer';
 
-const defaultMaterial = new PhongMaterial();
 const defaultProps = {
   // color
   colorDomain: null,
@@ -48,89 +48,80 @@ const defaultProps = {
   coverage: {type: 'number', min: 0, max: 1, value: 1},
   getPosition: {type: 'accessor', value: x => x.position},
   extruded: false,
-  fp64: false,
 
   // Optional material for 'lighting' shader module
-  material: defaultMaterial,
-
-  // GPU Aggregation
-  gpuAggregation: true
+  material: true
 };
 
-export default class GPUGridLayer extends CompositeLayer {
+// props , when changed requires re-aggregation
+const AGGREGATION_PROPS = ['colorAggregation', 'elevationAggregation'];
+
+export default class GPUGridLayer extends GridAggregationLayer {
   initializeState() {
     const {gl} = this.context;
     const isSupported = GPUGridAggregator.isSupported(gl);
     if (!isSupported) {
       log.error('GPUGridLayer is not supported on this browser, use GridLayer instead')();
     }
-    const options = {
-      id: `${this.id}-gpu-aggregator`
-    };
-    this.state = {
-      gpuGridAggregator: new GPUGridAggregator(gl, options),
-      isSupported
-    };
+    super.initializeState({aggregationProps: AGGREGATION_PROPS});
+    this.setState({
+      gpuAggregation: true,
+      isSupported,
+      weights: {
+        color: {
+          needMin: true,
+          needMax: true,
+          combineMaxMin: true,
+          maxMinBuffer: new Buffer(gl, {
+            byteLength: 4 * 4,
+            accessor: {size: 4, type: GL.FLOAT, divisor: 1}
+          })
+        },
+        elevation: {
+          needMin: true,
+          needMax: true,
+          combineMaxMin: true,
+          maxMinBuffer: new Buffer(gl, {
+            byteLength: 4 * 4,
+            accessor: {size: 4, type: GL.FLOAT, divisor: 1}
+          })
+        }
+      }
+    });
+    const attributeManager = this.getAttributeManager();
+    attributeManager.add({
+      positions: {
+        size: 3,
+        accessor: 'getPosition',
+        type: GL.DOUBLE,
+        fp64: this.use64bitPositions()
+      },
+      color: {size: 3, accessor: 'getColorWeight'},
+      elevation: {size: 3, accessor: 'getElevationWeight'}
+    });
   }
 
   updateState(opts) {
-    const aggregationFlags = this.getAggregationFlags(opts);
-    if (aggregationFlags) {
-      // aggregate points into grid cells
-      this.getLayerData(aggregationFlags);
-      // reset cached CPU Aggregation results (used for picking)
-      this.setState({gridHash: null});
-    }
-  }
-
-  finalizeState() {
-    super.finalizeState();
-    this.state.gpuGridAggregator.delete();
-  }
-
-  getAggregationFlags({oldProps, props, changeFlags}) {
-    let aggregationFlags = null;
-    if (!this.state.isSupported) {
+    if (this.state.isSupported === false) {
       // Skip update, layer not supported
-      return false;
+      return;
     }
-    if (this.isDataChanged({oldProps, props, changeFlags})) {
-      aggregationFlags = Object.assign({}, aggregationFlags, {dataChanged: true});
+    super.updateState(opts);
+    const {aggregationDirty} = this.state;
+    if (aggregationDirty) {
+      // reset cached CPU Aggregation results (used for picking)
+      this.setState({
+        gridHash: null
+      });
     }
-    if (oldProps.cellSize !== props.cellSize) {
-      aggregationFlags = Object.assign({}, aggregationFlags, {cellSizeChanged: true});
-    }
-    return aggregationFlags;
-  }
-
-  isDataChanged({oldProps, props, changeFlags}) {
-    // Flags affecting aggregation data
-    if (changeFlags.dataChanged) {
-      return true;
-    }
-    if (oldProps.gpuAggregation !== props.gpuAggregation) {
-      return true;
-    }
-    if (
-      oldProps.colorAggregation !== props.colorAggregation ||
-      oldProps.elevationAggregation !== props.elevationAggregation
-    ) {
-      return true;
-    }
-    if (
-      changeFlags.updateTriggersChanged &&
-      (changeFlags.updateTriggersChanged.all ||
-        changeFlags.updateTriggersChanged.getPosition ||
-        changeFlags.updateTriggersChanged.getColorWeight ||
-        changeFlags.updateTriggersChanged.getElevationWeight)
-    ) {
-      return true;
-    }
-    return false;
   }
 
   getHashKeyForIndex(index) {
-    const {gridSize, gridOrigin, cellSize} = this.state;
+    const {numRow, numCol, boundingBox, gridOffset} = this.state;
+    const gridSize = [numCol, numRow];
+    const gridOrigin = [boundingBox.xMin, boundingBox.yMin];
+    const cellSize = [gridOffset.xOffset, gridOffset.yOffset];
+
     const yIndex = Math.floor(index / gridSize[0]);
     const xIndex = index - yIndex * gridSize[0];
     // This will match the index to the hash-key to access aggregation data from CPU aggregation results.
@@ -144,7 +135,11 @@ export default class GPUGridLayer extends CompositeLayer {
   }
 
   getPositionForIndex(index) {
-    const {gridSize, gridOrigin, cellSize} = this.state;
+    const {numRow, numCol, boundingBox, gridOffset} = this.state;
+    const gridSize = [numCol, numRow];
+    const gridOrigin = [boundingBox.xMin, boundingBox.yMin];
+    const cellSize = [gridOffset.xOffset, gridOffset.yOffset];
+
     const yIndex = Math.floor(index / gridSize[0]);
     const xIndex = index - yIndex * gridSize[0];
     const yPos = yIndex * cellSize[1] + gridOrigin[1];
@@ -174,10 +169,19 @@ export default class GPUGridLayer extends CompositeLayer {
       };
       if (mode !== 'hover') {
         // perform CPU aggregation for full list of points for each cell
-        const {data, getPosition} = this.props;
+        const {props} = this;
         let {gridHash} = this.state;
         if (!gridHash) {
-          const cpuAggregation = pointToDensityGridDataCPU(data, this.props.cellSize, getPosition);
+          const {gridOffset, cellOffset, boundingBox} = this.state;
+          const {viewport} = this.context;
+          const attributes = this.getAttributes();
+          const cpuAggregation = pointToDensityGridDataCPU(props, {
+            gridOffset,
+            attributes,
+            viewport,
+            cellOffset,
+            boundingBox
+          });
           gridHash = cpuAggregation.gridHash;
           this.setState({gridHash});
         }
@@ -192,52 +196,6 @@ export default class GPUGridLayer extends CompositeLayer {
       // override object with picked cell
       object
     });
-  }
-
-  getLayerData(aggregationFlags) {
-    const {
-      data,
-      cellSize: cellSizeMeters,
-      getPosition,
-      gpuAggregation,
-      getColorWeight,
-      colorAggregation,
-      getElevationWeight,
-      elevationAggregation,
-      fp64
-    } = this.props;
-    const weightParams = {
-      color: {
-        getWeight: getColorWeight,
-        operation:
-          AGGREGATION_OPERATION[colorAggregation] ||
-          AGGREGATION_OPERATION[defaultProps.colorAggregation],
-        needMin: true,
-        needMax: true,
-        combineMaxMin: true
-      },
-      elevation: {
-        getWeight: getElevationWeight,
-        operation:
-          AGGREGATION_OPERATION[elevationAggregation] ||
-          AGGREGATION_OPERATION[defaultProps.elevationAggregation],
-        needMin: true,
-        needMax: true,
-        combineMaxMin: true
-      }
-    };
-    const {weights, gridSize, gridOrigin, cellSize, boundingBox} = pointToDensityGridData({
-      data,
-      cellSizeMeters,
-      getPosition,
-      weightParams,
-      gpuAggregation,
-      gpuGridAggregator: this.state.gpuGridAggregator,
-      boundingBox: this.state.boundingBox, // avoid parsing data when it is not changed.
-      aggregationFlags,
-      fp64
-    });
-    this.setState({weights, gridSize, gridOrigin, cellSize, boundingBox});
   }
 
   renderLayers() {
@@ -255,7 +213,7 @@ export default class GPUGridLayer extends CompositeLayer {
       elevationDomain
     } = this.props;
 
-    const {weights, gridSize, gridOrigin, cellSize} = this.state;
+    const {weights, numRow, numCol, boundingBox, gridOffset} = this.state;
 
     const colorRange = colorRangeToFlatArray(this.props.colorRange);
 
@@ -263,9 +221,9 @@ export default class GPUGridLayer extends CompositeLayer {
 
     return new SubLayerClass(
       {
-        gridSize,
-        gridOrigin,
-        gridOffset: cellSize,
+        gridSize: [numCol, numRow],
+        gridOrigin: [boundingBox.xMin, boundingBox.yMin],
+        gridOffset: [gridOffset.xOffset, gridOffset.yOffset],
         colorRange,
         elevationRange,
         colorDomain,
@@ -282,10 +240,68 @@ export default class GPUGridLayer extends CompositeLayer {
       }),
       {
         data: weights,
-        numInstances: gridSize[0] * gridSize[1]
+        numInstances: numCol * numRow
       }
     );
   }
+
+  finalizeState() {
+    const {color, elevation} = this.state.weights;
+    [color, elevation].forEach(weight => {
+      const {aggregationBuffer, maxMinBuffer} = weight;
+      maxMinBuffer.delete();
+      if (aggregationBuffer) {
+        aggregationBuffer.delete();
+      }
+    });
+    super.finalizeState();
+  }
+
+  // Aggregation Overrides
+
+  updateWeightParams(opts) {
+    const {getColorWeight, colorAggregation, getElevationWeight, elevationAggregation} = opts.props;
+    const {color, elevation} = this.state.weights;
+    color.getWeight = getColorWeight;
+    color.operation = AGGREGATION_OPERATION[colorAggregation];
+    elevation.getWeight = getElevationWeight;
+    elevation.operation = AGGREGATION_OPERATION[elevationAggregation];
+  }
+
+  allocateResources(numRow, numCol) {
+    if (this.state.numRow !== numRow || this.state.numCol !== numCol) {
+      const {color, elevation} = this.state.weights;
+      const dataBytes = numCol * numRow * 4 * 4;
+      const gl = this.context.gl;
+      updateAggregationBuffer(gl, color, dataBytes);
+      updateAggregationBuffer(gl, elevation, dataBytes);
+    }
+  }
+
+  updateAggregationFlags(opts) {
+    const cellSizeChanged = opts.oldProps.cellSize !== opts.props.cellSize;
+    const {dataChanged} = this.state;
+    this.setState({
+      cellSizeChanged,
+      cellSize: opts.props.cellSize,
+      needsReProjection: dataChanged || cellSizeChanged
+    });
+  }
+}
+
+// Helper methods
+function updateAggregationBuffer(gl, weight, dataBytes) {
+  if (weight.aggregationBuffer) {
+    weight.aggregationBuffer.delete();
+  }
+  weight.aggregationBuffer = new Buffer(gl, {
+    byteLength: dataBytes,
+    accessor: {
+      size: 4,
+      type: GL.FLOAT,
+      divisor: 1
+    }
+  });
 }
 
 GPUGridLayer.layerName = 'GPUGridLayer';

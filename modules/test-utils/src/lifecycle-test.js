@@ -19,7 +19,7 @@
 // THE SOFTWARE.
 
 import {LayerManager, MapView, DeckRenderer} from '@deck.gl/core';
-import {VertexArrayObject} from '@luma.gl/core';
+import {VertexArrayObject} from '@luma.gl/webgl';
 
 import {makeSpy} from '@probe.gl/test-utils';
 import gl from './utils/setup-gl';
@@ -90,7 +90,7 @@ export function testDrawLayer({
       deckRenderer.renderLayers({
         viewports: [viewport],
         layers: layerManager.getLayers(),
-        activateViewport: layerManager.activateViewport
+        onViewportActive: layerManager.activateViewport
       });
     },
     onError
@@ -209,7 +209,7 @@ function runLayerTests(layerManager, deckRenderer, layer, testCases, spies, onEr
         deckRenderer.renderLayers({
           viewports: [viewport],
           layers: layerManager.getLayers(),
-          activateViewport: layerManager.activateViewport
+          onViewportActive: layerManager.activateViewport
         }),
       onError
     );

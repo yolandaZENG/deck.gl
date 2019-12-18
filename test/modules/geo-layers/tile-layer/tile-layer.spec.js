@@ -22,12 +22,56 @@ import test from 'tape-catch';
 import {generateLayerTests, testLayer} from '@deck.gl/test-utils';
 import {TileLayer} from '@deck.gl/geo-layers';
 
-test('TileLayer#constructor', t => {
+test('TileLayer', t => {
   const testCases = generateLayerTests({
     Layer: TileLayer,
     assert: t.ok,
     onBeforeUpdate: ({testCase}) => t.comment(testCase.title)
   });
   testLayer({Layer: TileLayer, testCases, onError: t.notOk});
+  t.end();
+});
+
+test('TileLayer#updateTriggers', t => {
+  const testCases = [
+    {
+      props: {
+        getTileData: 0
+      },
+      onAfterUpdate({layer}) {
+        t.equal(layer.state.tileCache._getTileData, 0, 'Should create a tileCache.');
+      }
+    },
+    {
+      updateProps: {
+        getTileData: 1
+      },
+      onAfterUpdate({layer}) {
+        t.equal(
+          layer.state.tileCache._getTileData,
+          0,
+          'Should not create a tileCache when updateTriggers not changed.'
+        );
+      }
+    },
+    {
+      updateProps: {
+        getTileData: 2,
+        updateTriggers: {
+          getTileData: 2
+        }
+      },
+      onAfterUpdate({layer}) {
+        t.equal(
+          layer.state.tileCache._getTileData,
+          2,
+          'Should create a new tileCache with updated getTileData.'
+        );
+      }
+    }
+  ];
+
+  testLayer({Layer: TileLayer, testCases, onError: t.notOk});
+
   t.end();
 });

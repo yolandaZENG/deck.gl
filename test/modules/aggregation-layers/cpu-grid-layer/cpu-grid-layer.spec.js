@@ -134,6 +134,26 @@ test('CPUGridLayer#updates', t => {
     };
     return assertStateUpdate(shouldUpdate, 'cellSize');
   }
+  function getChecksForFilterChange(triggered) {
+    const shouldUpdate = {
+      layerData: false,
+      dimensions: {
+        fillColor: {
+          sortedBins: triggered,
+          valueDomain: triggered,
+          getValue: triggered,
+          scaleFunc: triggered
+        },
+        elevation: {
+          sortedBins: triggered,
+          valueDomain: triggered,
+          getValue: triggered,
+          scaleFunc: triggered
+        }
+      }
+    };
+    return assertStateUpdate(shouldUpdate, '_filterData');
+  }
   function getChecksForPositionChange(triggerChange) {
     const shouldUpdate = {
       layerData: triggerChange,
@@ -248,6 +268,54 @@ test('CPUGridLayer#updates', t => {
     return assertStateUpdate(shouldUpdate, `${dimension}${prop}`);
   }
 
+  function getChecksForColorScaleTypeQuantize(scaleType) {
+    const shouldUpdate = {
+      dimensions: {
+        colorScaleType: 'quantize'
+      }
+    };
+    t.ok(
+      shouldUpdate.dimensions.colorScaleType === scaleType,
+      `update aggregatorState.dimension.colorScaleType to ${scaleType}`
+    );
+  }
+
+  function getChecksForColorScaleTypeLinear(scaleType) {
+    const shouldUpdate = {
+      dimensions: {
+        colorScaleType: 'linear'
+      }
+    };
+    t.ok(
+      shouldUpdate.dimensions.colorScaleType === scaleType,
+      `update aggregatorState.dimension.colorScaleType to ${scaleType}`
+    );
+  }
+
+  function getChecksForColorScaleTypeQuantile(scaleType) {
+    const shouldUpdate = {
+      dimensions: {
+        colorScaleType: 'quantile'
+      }
+    };
+    t.ok(
+      shouldUpdate.dimensions.colorScaleType === scaleType,
+      `update aggregatorState.dimension.colorScaleType to ${scaleType}`
+    );
+  }
+
+  function getChecksForColorScaleTypeOrdinal(scaleType) {
+    const shouldUpdate = {
+      dimensions: {
+        colorScaleType: 'ordinal'
+      }
+    };
+    return t.ok(
+      shouldUpdate.dimensions.colorScaleType === scaleType,
+      `update aggregatorState.dimension.colorScaleType to ${scaleType}`
+    );
+  }
+
   testLayer({
     Layer: CPUGridLayer,
     onError: t.notOk,
@@ -292,29 +360,81 @@ test('CPUGridLayer#updates', t => {
           );
 
           t.ok(
-            Array.isArray(fillColor.sortedBins.sortedBins),
-            'aggregatorState.dimension.fillColor.sortedBins.sortedBins calculated'
+            Array.isArray(fillColor.sortedBins.aggregatedBins),
+            'aggregatorState.dimension.fillColor.sortedBins.aggregatedBins calculated'
           );
           t.ok(
-            Array.isArray(elevation.sortedBins.sortedBins),
-            'aggregatorState.dimension.elevation.sortedBins.sortedBins calculated'
-          );
-          t.ok(
-            Number.isFinite(fillColor.sortedBins.maxCount),
-            'aggregatorState.dimension.fillColor.sortedBins.maxCount calculated'
-          );
-          t.ok(
-            Number.isFinite(elevation.sortedBins.maxCount),
-            'aggregatorState.dimension.elevation.sortedBins.maxCount calculated'
+            Array.isArray(elevation.sortedBins.aggregatedBins),
+            'aggregatorState.dimension.elevation.sortedBins.aggregatedBins calculated'
           );
 
           const firstSortedBin = fillColor.sortedBins.sortedBins[0];
-          const binTocell = layerData.data.find(d => d.index === firstSortedBin.i);
+          const binToCell = layerData.data.find(d => d.index === firstSortedBin.i);
 
           t.ok(
-            fillColor.sortedBins.binMap[binTocell.index] === firstSortedBin,
+            fillColor.sortedBins.binMap[binToCell.index] === firstSortedBin,
             'Correct aggregatorState.dimension.fillColor.sortedBins.binMap created'
           );
+        }
+      },
+      {
+        updateProps: {
+          _filterData: pt => pt.SPACES >= 4 && pt.SPACES <= 10
+        },
+        onAfterUpdate: ({layer, oldState}) => {
+          getChecksForFilterChange(false)({layer, oldState});
+
+          const {layerData} = layer.state.aggregatorState;
+          const isPointFiltered = layerData.data.every(bin => bin.filteredPoints === null);
+
+          t.ok(isPointFiltered, 'filteredPoints in bins should be reset to null');
+        }
+      },
+      {
+        updateProps: {
+          _filterData: pt => pt.SPACES >= 4 && pt.SPACES <= 10,
+          updateTriggers: {
+            _filterData: 1
+          }
+        },
+        onAfterUpdate: ({layer, oldState}) => {
+          getChecksForFilterChange(true)({layer, oldState});
+
+          const {
+            layerData,
+            dimensions: {fillColor, elevation}
+          } = layer.state.aggregatorState;
+
+          const isPointFiltered = layerData.data.every(bin =>
+            bin.filteredPoints.every(pt => pt.SPACES >= 4 && pt.SPACES <= 10)
+          );
+
+          t.ok(isPointFiltered, 'filteredPoints in bins should be correct');
+
+          t.ok(
+            fillColor.sortedBins,
+            'aggregatorState.dimensions.fillColor.sortedColorBins calculated'
+          );
+          t.ok(
+            elevation.sortedBins,
+            'aggregatorState.dimensions.elevation.sortedColorBins calculated'
+          );
+        }
+      },
+      {
+        updateProps: {
+          _filterData: null,
+          updateTriggers: {
+            _filterData: 0
+          }
+        },
+        onAfterUpdate: ({layer, oldState}) => {
+          getChecksForFilterChange(true)({layer, oldState});
+
+          const {layerData} = layer.state.aggregatorState;
+          const isPointFiltered = layerData.data.every(bin => bin.filteredPoints === null);
+
+          t.ok(isPointFiltered, 'filteredPoints in bins should be reset to null');
         }
       },
       {
@@ -462,6 +582,30 @@ test('CPUGridLayer#updates', t => {
           elevationDomain: [0, 10]
         },
         onAfterUpdate: getChecksForDomainOrRangeUpdate('Domain', 'elevation')
+      },
+      {
+        updateProps: {
+          colorScaleType: 'quantize'
+        },
+        onAfterUpdate: getChecksForColorScaleTypeQuantize('quantize')
+      },
+      {
+        updateProps: {
+          colorScaleType: 'linear'
+        },
+        onAfterUpdate: getChecksForColorScaleTypeLinear('linear')
+      },
+      {
+        updateProps: {
+          colorScaleType: 'quantile'
+        },
+        onAfterUpdate: getChecksForColorScaleTypeQuantile('quantile')
+      },
+      {
+        updateProps: {
+          colorScaleType: 'ordinal'
+        },
+        onAfterUpdate: getChecksForColorScaleTypeOrdinal('ordinal')
       }
     ]
   });

@@ -1,4 +1,5 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/uber/deck.gl/binder?filepath=examples)
+[![Documentation Status](https://readthedocs.org/projects/deckgl/badge/?version=latest)](https://deckgl.readthedocs.io/en/latest/?badge=latest)
 
 # pydeck: Large-scale interactive data visualization in Python
 
@@ -12,7 +13,7 @@ For __interactive demos__, click the binder logo below:
 [![Binder](https://mybinder.org/static/logo.svg?v=f9f0d927b67cc9dc99d788c822ca21c0)](https://mybinder.org/v2/gh/uber/deck.gl/binder?filepath=examples)
 
 
-[See further documentation here.](https://github.com/uber/deck.gl/tree/master/bindings/python/pydeck/docs)
+[See further documentation here.](https://deckgl.readthedocs.io/en/latest/)
 
 ## Installation
 
@@ -28,6 +29,12 @@ jupyter nbextension install --sys-prefix --symlink --overwrite --py pydeck
 jupyter nbextension enable --sys-prefix --py pydeck
 ```
 
+### Mapbox API token
+
+Like deck.gl, the pydeck library takes its basemap tiles from [Mapbox](http://mapbox.com/). Register with Mapbox, and you can [find your Mapbox access token here](https://account.mapbox.com/access-tokens/). The service is free until a certain level of traffic is exceeded.
+
+You will need to inform pydeck about your key by setting an environment variable. In your terminal, run `export MAPBOX_API_KEY=<mapbox-key-here>`, which pydeck will read to use Mapbox basemaps. You can also refer to the pydeck docs to see how to pass the key as a variable.
+
 ## Getting started
 
 The following code renders a visualization similar to the one above in a Jupyter notebook:
@@ -35,8 +42,9 @@ The following code renders a visualization similar to the one above in a Jupyter
 ```python
 import pydeck as pdk
 
-# 2014 location of car accidents in the UK
-UK_ACCIDENTS_DATA = 'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/3d-heatmap/heatmap-data.csv'
+# 2014 locations of car accidents in the UK
+UK_ACCIDENTS_DATA = ('https://raw.githubusercontent.com/uber-common/'
+                     'deck.gl-data/master/examples/3d-heatmap/heatmap-data.csv')
 
 # Define a layer to display on a map
 layer = pdk.Layer(
@@ -63,6 +71,12 @@ view_state = pdk.ViewState(
 # Render
 r = pdk.Deck(layers=[layer], initial_view_state=view_state)
 r.to_html('demo.html')
+```
+
+If you're doing this outside a Jupyter environment, you can run:
+
+```python
+r.to_html('demo.html', notebook_display=False)
 ```
 
 For more, check out the docs and Binder examples above.
@@ -124,6 +138,15 @@ python3 -m venv env3
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
 pip install -e .
+```
+
+To enable develop with Jupyter Lab, run:
+
+```bash
+# Execute in deck.gl/modules/jupyter-widget directory
+jupyter labextension install @jupyter-widgets/jupyterlab-manager@1.0.3 --no-build
+jupyter labextension install . --no-build
+jupyter lab build
 ```
 
 ### Tests
