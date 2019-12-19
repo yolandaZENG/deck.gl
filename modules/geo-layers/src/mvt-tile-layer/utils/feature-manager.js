@@ -1,4 +1,5 @@
 import Feature from './feature';
+import {log} from '@deck.gl/core';
 
 export default class FeatureManager {
   constructor({uniquePropertyName}) {
@@ -17,10 +18,15 @@ export default class FeatureManager {
       if (this._features.has(featureId)) {
         try {
           this._features.get(featureId).combine(featureId, geojsonFeature);
-        } catch(err) {
-          const randomNumber = Math.trunc(Math.random() * 100)
-          console.warn(`Feature failed to merge: ${featureId}. Adding it as an independent feature: ${featureId}-${randomNumber}.`)
-          this._features.set(`${featureId}-${randomNumber}`, new Feature(featureId, geojsonFeature));
+        } catch (err) {
+          const randomNumber = Math.trunc(Math.random() * 100);
+          log.error(
+            `Feature failed to merge: ${featureId}. Adding it as an independent feature: ${featureId}-${randomNumber}.`
+          )();
+          this._features.set(
+            `${featureId}-${randomNumber}`,
+            new Feature(featureId, geojsonFeature)
+          );
         }
 
         return;

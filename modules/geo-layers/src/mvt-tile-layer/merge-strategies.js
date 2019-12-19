@@ -35,7 +35,7 @@ const mergePolygonWithPolygon = function mergePolygonWithPolygon(originalGeometr
   return {
     type: 'MultiPolygon',
     coordinates: polygonClipping.union(originalGeometry.coordinates, newGeometry.coordinates)
-  }
+  };
 };
 
 const mergePolygonWithMultiPolygon = function mergePolygonWithMultiPolygon(

@@ -1,5 +1,5 @@
 export default class CompositeTileCache {
-  constructor({ maximumTilesInCache = 5 } = {}) {
+  constructor({maximumTilesInCache = 5} = {}) {
     this._tiles = new Map();
     this._maximumTilesInCache = maximumTilesInCache;
   }
@@ -16,7 +16,7 @@ export default class CompositeTileCache {
     this.resetLayers();
     this.resizeCache();
 
-    this._tiles.set(compositeTileName, compositeTile)
+    this._tiles.set(compositeTileName, compositeTile);
   }
 
   get(compositeTileName) {

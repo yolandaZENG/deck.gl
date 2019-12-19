@@ -30,7 +30,10 @@ export default class MVTTileLayer extends TileLayer {
     const templateReplacer = (_, property) => tileProperties[property];
 
     const tileURLIndex = getTileURLIndex(tileProperties, this.state.urlTemplates.length);
-    const tileURL = this.state.urlTemplates[tileURLIndex].replace(/\{ *([\w_-]+) *\}/g, templateReplacer);
+    const tileURL = this.state.urlTemplates[tileURLIndex].replace(
+      /\{ *([\w_-]+) *\}/g,
+      templateReplacer
+    );
 
     return new Promise((resolve, reject) => {
       worker.postMessage({tileURL, tileProperties});

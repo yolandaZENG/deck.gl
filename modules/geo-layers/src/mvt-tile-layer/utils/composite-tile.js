@@ -20,7 +20,9 @@ export default class CompositeTile {
       return this._featureManager.getData();
     }
 
-    return Promise.all(Array.from(this.tileset.values()).map(tile => tile.data)).then(allData => flatArray(allData));
+    return Promise.all(Array.from(this.tileset.values()).map(tile => tile.data)).then(allData =>
+      flatArray(allData)
+    );
   }
 
   getZoomLevel() {
@@ -28,41 +30,43 @@ export default class CompositeTile {
   }
 
   waitForDataInTiles(pendingTiles) {
-    return Promise.all(pendingTiles.map(pendingTile => {
-      const tileID = getTileId(pendingTile);
-      const tileData = pendingTile.data;
-      const dataStillPending = Boolean(tileData.then);
+    return Promise.all(
+      pendingTiles.map(pendingTile => {
+        const tileID = getTileId(pendingTile);
+        const tileData = pendingTile.data;
+        const dataStillPending = Boolean(tileData.then);
 
-      if (!dataStillPending) {
-        this._featureManager.add(tileData);
-        this.tilesLoaded.set(tileID, true);
-        this._onTileLoad();
-        return Promise.resolve();
-      }
-
-      return tileData.then(loadedData => {
-        if (!loadedData) {
-          this.tilesLoaded.set(getTileId(pendingTile), true);
+        if (!dataStillPending) {
+          this._featureManager.add(tileData);
+          this.tilesLoaded.set(tileID, true);
           this._onTileLoad();
-          return;
+          return Promise.resolve();
         }
 
-        this._featureManager.add(loadedData);
-        this.tilesLoaded.set(getTileId(pendingTile), true);
-        this._onTileLoad();
-      });
-    }));
+        return tileData.then(loadedData => {
+          if (!loadedData) {
+            this.tilesLoaded.set(getTileId(pendingTile), true);
+            this._onTileLoad();
+            return;
+          }
+
+          this._featureManager.add(loadedData);
+          this.tilesLoaded.set(getTileId(pendingTile), true);
+          this._onTileLoad();
+        });
+      })
+    );
   }
 
   addDifferentialTiles(tileset) {
     const newTiles = tileset.filter(tile => !this.tileset.has(getTileId(tile)));
 
-    if (this._layer && (newTiles.length > 0)) {
+    if (this._layer && newTiles.length > 0) {
       this.resetLayer();
     }
 
     newTiles.forEach(tile => {
-      this.tileset.set(getTileId(tile), tile)
+      this.tileset.set(getTileId(tile), tile);
       this.tilesLoaded.set(getTileId(tile), false);
     });
 
