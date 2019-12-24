@@ -15,14 +15,16 @@ export default class MVTTileLayer extends TileLayer {
     const {urlTemplates = [], uniquePropertyName} = this.props;
 
     this.state = {
-      tiles: [],
       compositeTileCache: new CompositeTileCache(),
+      compositeTileLoadStatus: {},
+
       urlTemplates,
       uniquePropertyName,
-      isLoaded: false,
+
       worker: this.createWorker(),
       pendingTileRequests: {}
     };
+
   }
 
   getTileData(tileProperties) {
@@ -36,11 +38,11 @@ export default class MVTTileLayer extends TileLayer {
     );
 
     return new Promise((resolve, reject) => {
-      worker.postMessage({tileURL, tileProperties});
-
       // TODO: Implement better worker orchestration
       const {pendingTileRequests} = this.state;
       pendingTileRequests[tileURL] = {resolve, reject};
+
+      worker.postMessage({tileURL, tileProperties});
     });
   }
 
@@ -49,31 +51,29 @@ export default class MVTTileLayer extends TileLayer {
     pendingTileRequests[message.data.url].resolve(message.data.features);
   }
 
-  updateState({props, oldProps, context, changeFlags}) {
+  updateState({props, context, changeFlags}) {
     const {compositeTileCache} = this.state;
     let {tileCache} = this.state;
 
     if (
       !tileCache ||
-      (changeFlags.updateTriggersChanged &&
-        (changeFlags.updateTriggersChanged.all || changeFlags.updateTriggersChanged.getTileData))
+      (changeFlags.updateTriggersChanged && changeFlags.updateTriggersChanged.all)
     ) {
       const {maxZoom, minZoom, maxCacheSize} = props;
-      const getTileData = this.getTileData.bind(this);
 
       if (tileCache) {
         tileCache.finalize();
       }
       tileCache = new TileCache({
-        getTileData,
+        getTileData: this.getTileData.bind(this),
         maxSize: maxCacheSize,
         maxZoom,
         minZoom,
-        onTileLoad: this._onTileLoad.bind(this),
+        onTileLoad: () => {},
         onTileError: this._onTileError.bind(this)
       });
       this.setState({tileCache});
-    } else if (changeFlags.updateTriggersChanged) {
+    } else if (changeFlags.propsChanged) {
       compositeTileCache.resetLayers();
     }
 
@@ -84,42 +84,61 @@ export default class MVTTileLayer extends TileLayer {
   }
 
   _onViewportChanged(viewport) {
-    const {compositeTileCache, tileCache} = this.state;
+    const {compositeTileCache, tileCache, compositeTileLoadStatus} = this.state;
     const {uniquePropertyName} = this.props;
-    const z = this.getLayerZoomLevel();
+    const zoomLevel = this.getLayerZoomLevel();
 
     tileCache.update(viewport);
 
     // The tiles that should be displayed at this zoom level
-    const currTiles = tileCache.tiles.filter(tile => tile.z === z);
+    const currTiles = tileCache.tiles.filter(tile => tile.z === zoomLevel);
 
     let compositeTile;
-    if (compositeTileCache.hasTile(this.getLayerZoomLevel())) {
-      compositeTile = compositeTileCache.get(this.getLayerZoomLevel());
+    if (compositeTileCache.hasTile(zoomLevel)) {
+      compositeTile = compositeTileCache.getTile(zoomLevel);
       compositeTile.addDifferentialTiles(currTiles);
     } else {
       compositeTile = new CompositeTile({
         tileset: currTiles,
-        zoomLevel: this.getLayerZoomLevel(),
+        zoomLevel,
         uniquePropertyName,
         onTileLoad: this._onTileLoad.bind(this)
       });
-      compositeTileCache.add(this.getLayerZoomLevel(), compositeTile);
+      compositeTileCache.addTile(zoomLevel, compositeTile);
     }
 
-    this.setState({isLoaded: false, tiles: currTiles, compositeTile});
+    this.setState({
+      compositeTile,
+      compositeTileLoadStatus: {
+        ...compositeTileLoadStatus,
+        [compositeTile.getZoomLevel()]: compositeTile.isEveryTileLoaded()
+      }
+    });
   }
 
-  _onTileLoad() {
+  _onTileLoad(compositeTile) {
+    // console.log('_onTileLoad');
     const {onViewportLoaded} = this.props;
-    const {compositeTile, compositeTileCache} = this.state;
+    const {compositeTileLoadStatus} = this.state;
 
-    compositeTileCache.resetLayers();
+    if (compositeTile.getZoomLevel() !== this.getLayerZoomLevel()) {
+      return;
+    }
 
     const areTilesLoaded = compositeTile.isEveryTileLoaded();
+    const wasCompositeTileLoaded = compositeTileLoadStatus[compositeTile.getZoomLevel()] || false;
+    // console.log({areTilesLoaded, wasCompositeTileLoaded});
 
-    if (this.state.isLoaded !== areTilesLoaded) {
-      this.setState({isLoaded: areTilesLoaded});
+    if (wasCompositeTileLoaded !== areTilesLoaded) {
+      this.setState({
+        compositeTileLoadStatus: {
+          ...compositeTileLoadStatus,
+          [compositeTile.getZoomLevel()]: areTilesLoaded
+        }
+      });
+
+      // console.log('Tiles have just finished loading');
+
       if (areTilesLoaded && onViewportLoaded) {
         onViewportLoaded(compositeTile.getData());
       }
@@ -127,30 +146,70 @@ export default class MVTTileLayer extends TileLayer {
   }
 
   renderLayers() {
+    // console.log('***************** NEW RENDER *****************')
+    const {renderSubLayers, visible: layerVisible} = this.props;
+    const {compositeTileCache, compositeTileLoadStatus} = this.state;
     const z = this.getLayerZoomLevel();
-    const {compositeTileCache} = this.state;
-    const compositeTile = compositeTileCache.get(this.getLayerZoomLevel());
 
-    if (compositeTile.getLayer()) {
-      return [compositeTile.getLayer()];
-    }
+    const compositeTiles = compositeTileCache.getTiles();
+    const latestVisibleLayer = compositeTiles.filter(tile => {
+      const layer = tile.getLayer();
 
-    compositeTileCache.resetLayers();
+      return (tile.getZoomLevel() < z) &&
+        (layer && layer.props.visible);
+        // &&tile.isEveryTileLoaded();
+    });
 
-    const {renderSubLayers, visible} = this.props;
-    const data = this.state.compositeTile.getData();
+    const latestVisibleLayerZL = latestVisibleLayer[0] && latestVisibleLayer[0].getZoomLevel() || -Infinity;
 
-    const layer = renderSubLayers(
-      Object.assign({}, this.props, {
-        id: `${this.id}-${this.state.compositeTile.getZoomLevel()}`,
-        visible: visible && (!this.state.isLoaded || this.state.compositeTile.getZoomLevel() === z),
-        data,
-        tile: this.state.tiles
-      })
-    );
+    return compositeTiles.map(compositeTile => {
+      // console.group(`Layer with Zoom: ${compositeTile.getZoomLevel()}`);
+      const currentZoomLevelTileLoaded = compositeTileLoadStatus[z] || false;
+      const isSameZoomLevel = compositeTile.getZoomLevel() === z;
+      const isMaxRenderedZoomLevelTile = latestVisibleLayerZL === compositeTile.getZoomLevel();
 
-    compositeTile.addLayer(layer);
-    return [layer];
+      const visible = layerVisible && (
+        (!currentZoomLevelTileLoaded && isMaxRenderedZoomLevelTile) || isSameZoomLevel
+      );
+
+      // console.log('Visible:', visible);
+      // console.log({ layerVisible });
+      // console.log({ isCompositeTileLoaded });
+      // console.log({ isMaxRenderedZoomLevelTile });
+      // console.log({ isSameZoomLevel });
+
+      let layer = compositeTile.getLayer();
+      if (!layer) {
+        // console.log(`Layer ${compositeTile.getZoomLevel()}: rendering a new layer`)
+        const data = this.state.compositeTile.getData();
+
+        layer = renderSubLayers(
+          Object.assign({}, this.props, {
+            id: `${this.id}-${compositeTile.getZoomLevel()}`,
+            visible,
+            data,
+            tile: compositeTile
+          })
+        );
+
+        if (compositeTile.isEveryTileLoaded()) {
+          compositeTile.addLayer(layer);
+        }
+      } else if (layer.props.visible !== visible) {
+        // console.log(`Layer ${compositeTile.getZoomLevel()}: changing visibility to layer`)
+        layer = compositeTile.getLayer().clone({ visible });
+
+        if (compositeTile.isEveryTileLoaded()) {
+          compositeTile.addLayer(layer);
+        }
+      } else {
+        // console.log(`Layer ${compositeTile.getZoomLevel()}: rendering cached layer`);
+      }
+      // console.log(`Layer ${compositeTile.getZoomLevel()}: visibility ${layer.props.visible}`);
+      // console.groupEnd(`Layer with Zoom: ${compositeTile.getZoomLevel()}`);
+      return layer;
+    });
+    // console.log('***************** RENDER END *****************')
   }
 
   createWorker() {

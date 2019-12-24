@@ -1,26 +1,29 @@
 export default class CompositeTileCache {
-  constructor({maximumTilesInCache = 5} = {}) {
+  constructor({maximumTilesInCache = 3} = {}) {
     this._tiles = new Map();
     this._maximumTilesInCache = maximumTilesInCache;
   }
 
-  size() {
-    return this._tiles.size;
+  getTiles() {
+    return Array.from(this._tiles.values());
   }
 
-  hasTile(compositeTileName) {
-    return this._tiles.has(compositeTileName);
-  }
-
-  add(compositeTileName, compositeTile) {
-    this.resetLayers();
+  addTile(compositeTileName, compositeTile) {
     this.resizeCache();
 
     this._tiles.set(compositeTileName, compositeTile);
   }
 
-  get(compositeTileName) {
-    return this._tiles.get(compositeTileName);
+  getTile(compositeTileZoomLevel) {
+    return this._tiles.get(compositeTileZoomLevel);
+  }
+
+  getCacheSize() {
+    return this._tiles.size;
+  }
+
+  hasTile(compositeTileName) {
+    return this._tiles.has(compositeTileName);
   }
 
   resetLayers() {
@@ -29,13 +32,17 @@ export default class CompositeTileCache {
     });
   }
 
+  resetLayer(zoomLevel) {
+    this._tiles.get(zoomLevel).resetLayer();
+  }
+
   resizeCache() {
-    if (this._maximumTilesInCache < this.size()) {
+    if (this._maximumTilesInCache < this.getCacheSize()) {
       return;
     }
 
     const cachedTiles = Array.from(this._tiles.keys());
-    const numberOfTilesToDelete = this.size() - this._maximumTilesInCache;
+    const numberOfTilesToDelete = this.getCacheSize() - this._maximumTilesInCache;
 
     for (let i = 0; i <= numberOfTilesToDelete; i++) {
       this._tiles.delete(cachedTiles[i]);

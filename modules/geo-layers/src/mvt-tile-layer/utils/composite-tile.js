@@ -3,7 +3,7 @@ import FeatureManager from './feature-manager';
 export default class CompositeTile {
   constructor({tileset = [], zoomLevel, uniquePropertyName, onTileLoad}) {
     this.tileset = convertArrayToMap(tileset, getTileId);
-    this.tilesLoaded = new Map();
+    this.tileLoadStatus = new Map();
     this.zoomLevel = zoomLevel;
     this._onTileLoad = onTileLoad;
 
@@ -11,8 +11,7 @@ export default class CompositeTile {
       uniquePropertyName
     });
 
-    tileset.map(tile => this.tilesLoaded.set(getTileId(tile), false));
-    this.waitForDataInTiles(tileset);
+    this.addTiles(tileset);
   }
 
   getData() {
@@ -20,64 +19,69 @@ export default class CompositeTile {
       return this._featureManager.getData();
     }
 
-    return Promise.all(Array.from(this.tileset.values()).map(tile => tile.data)).then(allData =>
-      flatArray(allData)
-    );
+    return [];
   }
 
   getZoomLevel() {
     return this.zoomLevel;
   }
 
-  waitForDataInTiles(pendingTiles) {
+  addTiles(tiles) {
+    tiles.forEach(tile => {
+      this.tileset.set(getTileId(tile), tile);
+      this.tileLoadStatus.set(getTileId(tile), false);
+    });
+    // console.log('adding new tiles and marked as not loaded');
+
+    return this._waitForDataInTiles(tiles)
+    .then(() => {
+      this.resetLayer();
+      this._onTileLoad(this);
+    })
+    .catch(console.error);
+  }
+
+  addDifferentialTiles(tileset) {
+    // We'd need to set as new tiles that have not been loaded yet :(
+    const newTiles = tileset.filter(tile => !this.tileset.has(getTileId(tile)));
+
+    if (newTiles.length <= 0) {
+      return Promise.resolve();
+    }
+
+    return this.addTiles(tileset);
+  }
+
+  isEveryTileLoaded() {
+    return Array.from(this.tileLoadStatus.values()).every(isLoaded => isLoaded);
+  }
+
+  _waitForDataInTiles(pendingTiles) {
     return Promise.all(
       pendingTiles.map(pendingTile => {
-        const tileID = getTileId(pendingTile);
+        const tileId = getTileId(pendingTile);
         const tileData = pendingTile.data;
         const dataStillPending = Boolean(tileData.then);
 
         if (!dataStillPending) {
           this._featureManager.add(tileData);
-          this.tilesLoaded.set(tileID, true);
-          this._onTileLoad();
+          this.tileLoadStatus.set(tileId, true);
           return Promise.resolve();
         }
 
         return tileData.then(loadedData => {
           if (!loadedData) {
-            this.tilesLoaded.set(getTileId(pendingTile), true);
-            this._onTileLoad();
+            this.tileLoadStatus.set(getTileId(pendingTile), true);
             return;
           }
 
           this._featureManager.add(loadedData);
-          this.tilesLoaded.set(getTileId(pendingTile), true);
-          this._onTileLoad();
+          this.tileLoadStatus.set(getTileId(pendingTile), true);
         });
       })
     );
   }
 
-  addDifferentialTiles(tileset) {
-    const newTiles = tileset.filter(tile => !this.tileset.has(getTileId(tile)));
-
-    if (this._layer && newTiles.length > 0) {
-      this.resetLayer();
-    }
-
-    newTiles.forEach(tile => {
-      this.tileset.set(getTileId(tile), tile);
-      this.tilesLoaded.set(getTileId(tile), false);
-    });
-
-    return this.waitForDataInTiles(newTiles);
-  }
-
-  isEveryTileLoaded() {
-    return Array.from(this.tilesLoaded.values()).every(isLoaded => isLoaded);
-  }
-
-  // Methods for rendered layer caching
   addLayer(layer) {
     this._layer = layer;
   }
@@ -86,7 +90,12 @@ export default class CompositeTile {
     return this._layer;
   }
 
+  hasLayer() {
+    return Boolean(this._layer);
+  }
+
   resetLayer() {
+    // console.log('resetting layer in zoom level:', this.getZoomLevel())
     this._layer = null;
   }
 }
@@ -103,8 +112,4 @@ function convertArrayToMap(arrayInstance, propertyInterpolator) {
   };
 
   return arrayInstance.reduce(arrayToMap, new Map());
-}
-
-function flatArray(arr) {
-  return arr.reduce((acc, val) => acc.concat(val), []);
 }
