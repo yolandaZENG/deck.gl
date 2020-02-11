@@ -53,7 +53,7 @@ export default class TileLayer extends CompositeLayer {
         tileset.finalize();
       }
       tileset = new Tileset2D({
-        getTileData,
+        getTileData: this.state.getTileData || getTileData,
         getTileIndices,
         tileToBoundingBox,
         maxSize: maxCacheSize,
