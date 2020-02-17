@@ -1580,6 +1580,14 @@
     "@babel/runtime" "^7.3.1"
     "@loaders.gl/loader-utils" "2.0.2"
 
+"@loaders.gl/core@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@loaders.gl/core/-/core-2.0.4.tgz#10f647bf0e10af971a7d4e60031992f54c76a91b"
+  integrity sha512-rBj2QwZh5wUEYblI5tEf0uFRps23Hu/0OM4lA27y+9BUNrT1D4CVBktqsQ6EyMRFWoBGO6Q6G9SEg/49I6MM5w==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    "@loaders.gl/loader-utils" "2.0.4"
+
 "@loaders.gl/csv@^2.0.2":
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/@loaders.gl/csv/-/csv-2.0.2.tgz#2dad2e41476dc643fbc30ea4542ce2084a5c2bda"
@@ -1609,6 +1617,13 @@
   dependencies:
     "@babel/runtime" "^7.3.1"
 
+"@loaders.gl/loader-utils@2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@loaders.gl/loader-utils/-/loader-utils-2.0.4.tgz#de2494f85e6e36fc05ec43ee1d2ada65bcd7f3f6"
+  integrity sha512-e+Grafj+6pk+7WDClWW/OsuTg/wpaJ3+pLX7c+eG3KmcxiLEDoCNWSvQVbR8ALU4Y6m3S32+WlHptBnN1LL48A==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+
 "@loaders.gl/math@2.0.2":
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/@loaders.gl/math/-/math-2.0.2.tgz#a1afaa312bbd669bf9f5cf3592b8e093b8c65d94"
@@ -1616,6 +1631,11 @@
   dependencies:
     "@loaders.gl/images" "2.0.2"
     math.gl "^3.1.2"
+
+"@loaders.gl/mvt@^2.1.0-alpha.2":
+  version "2.1.0-alpha.2"
+  resolved "https://registry.yarnpkg.com/@loaders.gl/mvt/-/mvt-2.1.0-alpha.2.tgz#78a9f5b5ae624660a93cfd1f53f07bfa83718c6b"
+  integrity sha512-D7I8RpMN+Pla1IcSE8swRNIRYZT35ZahY3NFAufls0N8GWX/ScztmgMnasLxhLI12RhMhk+9Rn56+xBhej5HRg==
 
 "@loaders.gl/polyfills@^2.0.2":
   version "2.0.2"
