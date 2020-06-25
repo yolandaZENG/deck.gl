@@ -187,6 +187,7 @@ export const MVTLayerDemo = createLayerDemoClass({
           return 1;
       }
     },
-    lineWidthMinPixels: 1
+    lineWidthMinPixels: 1,
+    uniqueIdProperty: 'name'
   }
 })

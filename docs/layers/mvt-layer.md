@@ -36,7 +36,8 @@ export const App = ({viewport}) => {
           return 1;
       }
     },
-    lineWidthMinPixels: 1
+    lineWidthMinPixels: 1,
+    uniqueIdProperty: 'name'
   });
 
   return <DeckGL {...viewport} layers={[layer]} />;
