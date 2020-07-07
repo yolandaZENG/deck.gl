@@ -7,6 +7,8 @@ import TileLayer from '../tile-layer/tile-layer';
 import {getURLFromTemplate} from '../tile-layer/utils';
 import ClipExtension from './clip-extension';
 
+import {transform} from './coordinate-transform';
+
 const WORLD_SIZE = 512;
 
 const defaultProps = {
@@ -46,6 +48,7 @@ export default class MVTLayer extends TileLayer {
 
   onHover(info, pickingEvent) {
     const {uniqueIdProperty, autoHighlight} = this.props;
+    const {object, tile} = info;
 
     if (autoHighlight) {
       const {hoveredFeatureId} = this.state;
@@ -61,7 +64,21 @@ export default class MVTLayer extends TileLayer {
       }
     }
 
+    if (object) {
+      info.object.geometry = transform(object.geometry, tile);
+    }
+
     return super.onHover(info, pickingEvent);
+  }
+
+  onClick(info, pickingEvent) {
+    const {object, tile} = info;
+
+    if (object) {
+      info.object.geometry = transform(object.geometry, tile);
+    }
+
+    return super.onClick(info, pickingEvent);
   }
 
   getHighlightedObjectIndex(tile) {
