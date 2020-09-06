@@ -1,21 +1,18 @@
 import {CompositeLayer} from '@deck.gl/core';
 import {MVTLayer} from '@deck.gl/geo-layers';
-import {instantiateMap, getTilesFromInstance} from './api/maps-api-client';
+import {instantiateMap, getTilesFromInstance} from '../api/maps-api-client';
 
 const defaultProps = {
-  // source-props
   data: null,
   credentials: null
-  // style-props
-  // ...GeoJsonLayer.defaultProps
 };
 
-export default class CartoLayer extends CompositeLayer {
-  initializeState() {
-    this.state = {
-      mapInstance: null
-    };
-    this._instantiateMap();
+export default class CartoSQLLayer extends CompositeLayer {
+  updateState({changeFlags}) {
+    const {data} = this.props;
+    if (changeFlags.dataChanged && data) {
+      this._instantiateMap();
+    }
   }
 
   async _instantiateMap() {
@@ -35,9 +32,10 @@ export default class CartoLayer extends CompositeLayer {
       ...this.props,
       data: getTilesFromInstance(this.state.mapInstance)
     };
+
     return new MVTLayer(props);
   }
 }
 
-CartoLayer.layerName = 'CartoLayer';
-CartoLayer.defaultProps = defaultProps;
+CartoSQLLayer.layerName = 'CartoSQLLayer';
+CartoSQLLayer.defaultProps = defaultProps;
