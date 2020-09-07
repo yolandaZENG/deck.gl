@@ -22,15 +22,20 @@
 
   <script type="text/javascript">
 
-  const map = new google.maps.Map(document.getElementById("map"), {
-    center: {
-      lat: 0,
-      lng: 0
-    },
-    zoom: 2
-  });
+    deck.carto.setDefaultCredentials({
+      username: 'public',
+      apiKey: 'default_public'
+    });
 
-  const deckOverlay = new deck.GoogleMapsOverlay({
+    const map = new google.maps.Map(document.getElementById("map"), {
+      center: {
+        lat: 0,
+        lng: 0
+      },
+      zoom: 2
+    });
+
+    const deckOverlay = new deck.GoogleMapsOverlay({
       layers: [
         new deck.carto.CartoSQLLayer({
           data: `SELECT * FROM populated_places`,
@@ -41,7 +46,7 @@
         })
       ]
     });
-  deckOverlay.setMap(map);
+    deckOverlay.setMap(map);
 
   </script>
 </html>
