@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {render} from 'react-dom';
+import {StaticMap} from 'react-map-gl';
 import DeckGL from '@deck.gl/react';
 import {CartoSQLLayer, CartoBQTilerLayer} from '@deck.gl/carto';
 
@@ -21,22 +22,22 @@ function getContinentCondition(continent) {
 export default function App() {
   const [continent, setContinent] = useState(null);
 
+  const styleProperties = {
+    getLineColor: [0, 0, 0, 0.75],
+    getFillColor: [238, 77, 90],
+    getRadius: 100,
+    pointRadiusMinPixels: 6,
+    lineWidthMinPixels: 1
+  }
+
   const layer = new CartoSQLLayer({
     data: `SELECT * FROM world_population_2015 ${getContinentCondition(continent)}`, // world_population_2015 | `SELECT * FROM world_population_2015 WHERE continent_name='Africa'`,
-    minZoom: 0,
-    maxZoom: 23,
-    getLineColor: [192, 192, 192],
-    getFillColor: [255, 0, 0, 50],
-    getRadius: 100,
-    pointRadiusMinPixels: 6
+    ...styleProperties
   });
 
   const tileset = new CartoBQTilerLayer({
     data: 'cartobq.maps.nyc_taxi_points_demo_id',
-    getLineColor: [192, 192, 192],
-    getFillColor: [255, 0, 0, 50],
-    getRadius: 100,
-    pointRadiusMinPixels: 6
+    ...styleProperties
   });
 
   return (
@@ -53,7 +54,13 @@ export default function App() {
         initialViewState={INITIAL_VIEW_STATE}
         controller={true}
         layers={[layer, tileset]}
+      >
+      <StaticMap
+        reuseMaps
+        mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+        preventStyleDiffing
       />
+      </DeckGL>
     </div>
   );
 }
