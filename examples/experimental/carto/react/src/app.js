@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {render} from 'react-dom';
 import {StaticMap} from 'react-map-gl';
 import DeckGL from '@deck.gl/react';
-import {MVTLayer} from '@deck.gl/geo-layers';
 import {CartoSQLLayer, CartoBQTilerLayer} from '@deck.gl/carto';
 
 const INITIAL_VIEW_STATE = {
@@ -63,6 +62,7 @@ export default function App() {
         preventStyleDiffing
       />
       </DeckGL>
+
     </div>
   );
 }
