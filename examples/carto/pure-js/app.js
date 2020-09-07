@@ -1,6 +1,6 @@
 import mapboxgl from 'mapbox-gl';
 import {Deck} from '@deck.gl/core';
-import {CartoSQLLayer,setDefaultCredentials} from '@deck.gl/carto';
+import {CartoSQLLayer, setDefaultCredentials} from '@deck.gl/carto';
 
 const INITIAL_VIEW_STATE = {
   latitude: 0,
@@ -20,7 +20,6 @@ const map = new mapboxgl.Map({
   center: [INITIAL_VIEW_STATE.longitude, INITIAL_VIEW_STATE.latitude],
   zoom: INITIAL_VIEW_STATE.zoom
 });
-
 
 export const deck = new Deck({
   canvas: 'deck-canvas',

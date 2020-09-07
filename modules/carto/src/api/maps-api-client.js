@@ -3,14 +3,7 @@ import {getDefaultCredentials} from '../auth';
 const DEFAULT_USER_COMPONENT_IN_URL = '{user}';
 
 export async function getMapTileJSON(props) {
-  const {
-    data, 
-    credentials, 
-    bufferSize,
-    version,
-    extent,
-    simplifyExtent
-   } = props;
+  const {data, credentials, bufferSize, version, extent, simplifyExtent} = props;
 
   const isSQL = data.search(' ') > -1;
   const sql = isSQL ? data : `SELECT * FROM ${data}`;

@@ -2,7 +2,8 @@ import {CompositeLayer} from '@deck.gl/core';
 import {MVTLayer} from '@deck.gl/geo-layers';
 import {getMapTileJSON} from '../api/maps-api-client';
 
-const BQ_TILEJSON_ENDPOINT = 'https://thingproxy.freeboard.io/fetch/https://bq1.cartocdn.com/tilesjson';
+const BQ_TILEJSON_ENDPOINT =
+  'https://thingproxy.freeboard.io/fetch/https://bq1.cartocdn.com/tilesjson';
 
 const defaultProps = {
   data: null,
@@ -26,14 +27,14 @@ export default class CartoLayer extends CompositeLayer {
   }
 
   async _updateTileJSON() {
-    const { type} = this.props;
+    const {type} = this.props;
     let tilejson;
 
     switch (type) {
       case 'SQL':
         tilejson = await getMapTileJSON(this.props);
         break;
-        
+
       case 'BigQuery':
         /* global fetch */
         /* eslint no-undef: "error" */
@@ -45,10 +46,9 @@ export default class CartoLayer extends CompositeLayer {
         });
         tilejson = await response.json();
         break;
-      
+
       default:
         throw new Error(`Unsupported type ${type}`);
-    
     }
 
     this.setState({tilejson});
@@ -62,7 +62,7 @@ export default class CartoLayer extends CompositeLayer {
       data: this.state.tilejson.tiles
     };
 
-    return new MVTLayer(props) ;
+    return new MVTLayer(props);
   }
 }
 

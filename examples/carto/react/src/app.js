@@ -28,7 +28,7 @@ export default function App() {
   const [continent, setContinent] = useState(null);
 
   const layer = new CartoSQLLayer({
-    data: `SELECT * FROM world_population_2015 ${getContinentCondition(continent)}`, 
+    data: `SELECT * FROM world_population_2015 ${getContinentCondition(continent)}`,
     pointRadiusMinPixels: 6,
     getLineColor: [0, 0, 0, 0.75],
     getFillColor: [238, 77, 90],
@@ -50,13 +50,12 @@ export default function App() {
         controller={true}
         layers={[layer]}
       >
-      <StaticMap
-        reuseMaps
-        mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
-        preventStyleDiffing
-      />
+        <StaticMap
+          reuseMaps
+          mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+          preventStyleDiffing
+        />
       </DeckGL>
-
     </div>
   );
 }

@@ -5,12 +5,12 @@ const defaultProps = {
   credentials: null
 };
 
-export default class CartoBQTilerLayer extends CartoLayer { 
+export default class CartoBQTilerLayer extends CartoLayer {
   constructor(props) {
     super({
       ...props,
       type: 'BigQuery'
-    })
+    });
   }
 }
 

@@ -10,15 +10,15 @@ const defaultProps = {
   // Tile extent in tile coordinate space as defined by MVT specification.
   extent: 4096,
   // Simplify extent
-  simplifyExtent: 4096,
+  simplifyExtent: 4096
 };
 
-export default class cartoSQLLayer extends CartoLayer { 
+export default class cartoSQLLayer extends CartoLayer {
   constructor(props) {
     super({
       ...props,
       type: 'SQL'
-    })
+    });
   }
 }
 
