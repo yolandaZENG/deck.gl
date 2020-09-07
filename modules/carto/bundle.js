@@ -9,4 +9,4 @@ if (!deck.LineLayer) {
   throw new Error('@deck.gl/layers is not found');
 }
 
-module.exports = Object.assign(deck, CartoUtils);
+module.exports = Object.assign(deck, {carto: CartoUtils});

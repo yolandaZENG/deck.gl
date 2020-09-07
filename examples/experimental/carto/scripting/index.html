@@ -1,0 +1,51 @@
+<html>
+  <head>
+    <!-- deck.gl standalone bundle -->
+
+    <script src="http://127.0.0.1:8080/modules/core/dist.min.js"></script>
+    <script src="http://127.0.0.1:8080/modules/carto/dist.min.js"></script>
+
+    <!-- Mapbox dependencies -->
+    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.4.0/mapbox-gl.js"></script>
+    <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.4.0/mapbox-gl.css" rel="stylesheet" />
+
+    <style type="text/css">
+      body {margin: 0; padding: 0;}
+      #container {width: 100vw; height: 100vh;}
+    </style>
+  </head>
+
+  <body>
+    <div id="container"></div>
+  </body>
+
+  <script type="text/javascript">
+
+const deckgl = new deck.DeckGL({
+  container: 'container',
+  // Set your Mapbox access token here
+  mapboxApiAccessToken: 'pk.eyJ1IjoiYWxhc2FyciIsImEiOiJGQThXV3pNIn0.JPugapJ2Lzf3mq_Hh1545w',
+
+  initialViewState: {
+    latitude: 51.47,
+    longitude: 0.45,
+    zoom: 4,
+    bearing: 0,
+    pitch: 30,
+  },
+  controller: true,
+
+  layers: [
+    new deck.carto.CartoSQLLayer({
+      data: `SELECT * FROM world_population_2015`, // world_population_2015 | `SELECT * FROM world_population_2015 WHERE continent_name='Africa'`,
+      minZoom: 0,
+      maxZoom: 23,
+      getLineColor: [192, 192, 192],
+      getFillColor: [255, 0, 0, 50],
+      getRadius: 100,
+      pointRadiusMinPixels: 6
+    })
+  ]
+});
+  </script>
+</html>
