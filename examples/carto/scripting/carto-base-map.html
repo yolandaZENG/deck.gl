@@ -31,10 +31,17 @@
 
   <script type="text/javascript">
 
+    function setBaseMap(basemap) {
+      deckgl.getMapboxMap().setStyle(getBasemapUrl(basemap))
+    }
+
+    function getBasemapUrl(basemap) {
+      return `https://basemaps.cartocdn.com/gl/${basemap}-gl-style/style.json`
+    }
+
     deck.carto.setDefaultCredentials({
       username: 'public',
-      apiKey: 'default_public',
-      serverUrlTemplate: 'https://{user}.carto.com'
+      apiKey: 'default_public'
     })
 
     const deckgl = new deck.DeckGL({
@@ -58,14 +65,6 @@
         })
       ]
     });
-
-    function setBaseMap(basemap) {
-      deckgl.getMapboxMap().setStyle(getBasemapUrl(basemap))
-    }
-
-    function getBasemapUrl(basemap) {
-      return `https://basemaps.cartocdn.com/gl/${basemap}-gl-style/style.json`
-    }
 
   </script>
 </html>

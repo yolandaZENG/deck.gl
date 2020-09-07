@@ -1,12 +1,17 @@
-import {Deck} from '@deck.gl/core';
-import {CartoSQLLayer, CartoBQTilerLayer} from '@deck.gl/carto';
 import mapboxgl from 'mapbox-gl';
+import {Deck} from '@deck.gl/core';
+import {CartoSQLLayer,setDefaultCredentials} from '@deck.gl/carto';
 
 const INITIAL_VIEW_STATE = {
   latitude: 0,
   longitude: 0,
   zoom: 1
 };
+
+setDefaultCredentials({
+  username: 'public',
+  apiKey: 'default_public'
+});
 
 const map = new mapboxgl.Map({
   container: 'map',
@@ -16,11 +21,6 @@ const map = new mapboxgl.Map({
   zoom: INITIAL_VIEW_STATE.zoom
 });
 
-const styleProperties = {
-  getLineColor: [0, 0, 0, 0.75],
-  getFillColor: [238, 77, 90],
-  lineWidthMinPixels: 1
-}
 
 export const deck = new Deck({
   canvas: 'deck-canvas',
@@ -40,12 +40,9 @@ export const deck = new Deck({
     new CartoSQLLayer({
       data: 'SELECT * FROM world_population_2015',
       pointRadiusMinPixels: 6,
-      ...styleProperties
-    }),
-    new CartoBQTilerLayer({
-      data: 'cartobq.maps.nyc_taxi_points_demo_id',
-      pointRadiusMinPixels: 2,
-      ...styleProperties,
+      getLineColor: [0, 0, 0, 0.75],
+      getFillColor: [238, 77, 90],
+      lineWidthMinPixels: 1
     })
   ]
 });

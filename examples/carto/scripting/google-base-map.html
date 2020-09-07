@@ -3,11 +3,12 @@
     <!-- deck.gl standalone bundle -->
     <script src="http://127.0.0.1:8080/modules/core/dist.min.js"></script>
     <script src="http://127.0.0.1:8080/modules/layers/dist.min.js"></script>
+    <script src="http://127.0.0.1:8080/modules/google-maps/dist.min.js"></script>
     <script src="http://127.0.0.1:8080/modules/carto/dist.min.js"></script>
 
-    <!-- Mapbox dependencies -->
-    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.4.0/mapbox-gl.js"></script>
-    <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.4.0/mapbox-gl.css" rel="stylesheet" />
+    <!-- Google dependencies -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPJpjD-qcR_yIxJnS8maR5W9KB0E3EzYI"></script>
 
     <style type="text/css">
       body {margin: 0; padding: 0;}
@@ -23,24 +24,21 @@
 
     deck.carto.setDefaultCredentials({
       username: 'public',
-      apiKey: 'default_public',
-      serverUrlTemplate: 'https://{user}.carto.com'
-    })
+      apiKey: 'default_public'
+    });
 
-    const deckgl = new deck.DeckGL({
-      container: 'map',
-      mapStyle: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-
-      initialViewState: {
-        latitude: 0,
-        longitude: 0,
-        zoom: 1
+    const map = new google.maps.Map(document.getElementById("map"), {
+      center: {
+        lat: 0,
+        lng: 0
       },
-      controller: true,
+      zoom: 2
+    });
 
+    const deckOverlay = new deck.GoogleMapsOverlay({
       layers: [
-        new deck.carto.CartoBQTilerLayer({
-          data: 'cartobq.maps.nyc_taxi_points_demo_id',
+        new deck.carto.CartoSQLLayer({
+          data: `SELECT * FROM populated_places`,
           getLineColor: [255, 255, 255],
           getFillColor: [238, 77, 90],
           pointRadiusMinPixels: 6,
@@ -48,6 +46,7 @@
         })
       ]
     });
+    deckOverlay.setMap(map);
 
   </script>
 </html>
