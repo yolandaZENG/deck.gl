@@ -9,7 +9,7 @@ let credentials = defaultCredentials;
 export function setDefaultCredentials(opts) {
   credentials = {
     ...credentials,
-    opts
+    ...opts
   };
 }
 

@@ -21,6 +21,12 @@
 
   <script type="text/javascript">
 
+    deck.carto.setDefaultCredentials({
+      username: 'public',
+      apiKey: 'default_public',
+      serverUrlTemplate: 'https://{user}.carto.com'
+    })
+
     const deckgl = new deck.DeckGL({
       container: 'map',
       mapStyle: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',

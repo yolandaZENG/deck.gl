@@ -12,35 +12,60 @@
     <style type="text/css">
       body {margin: 0; padding: 0;}
       #map {width: 100vw; height: 100vh;}
+      .basemap-selector { position: absolute; z-index: 1; top: 0; right: 0; background-color: #FFF; padding: 8px;}
     </style>
   </head>
 
   <body>
     <div id="map"></div>
+    <div class="basemap-selector">
+      <h3>Basemap selector</h3>
+      <input type="radio" id="voyager" name="base-map" value="voyager" checked onclick="setBaseMap(this.value)">
+      <label for="voyager">Voyager</label><br>
+      <input type="radio" id="positron" name="base-map" value="positron" onclick="setBaseMap(this.value)">
+      <label for="positron">Positron</label><br>
+      <input type="radio" id="dark-matter" name="base-map" value="dark-matter" onclick="setBaseMap(this.value)">
+      <label for="dark-matter">Dark matter</label>
+    </div>
   </body>
 
   <script type="text/javascript">
 
-const deckgl = new deck.DeckGL({
-  container: 'map',
-  mapStyle: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-
-  initialViewState: {
-    latitude: 0,
-    longitude: 0,
-    zoom: 1
-  },
-  controller: true,
-
-  layers: [
-    new deck.carto.CartoSQLLayer({
-      data: `SELECT * FROM populated_places`,
-      getLineColor: [255, 255, 255],
-      getFillColor: [238, 77, 90],
-      pointRadiusMinPixels: 6,
-      lineWidthMinPixels: 1
+    deck.carto.setDefaultCredentials({
+      username: 'public',
+      apiKey: 'default_public',
+      serverUrlTemplate: 'https://{user}.carto.com'
     })
-  ]
-});
+
+    const deckgl = new deck.DeckGL({
+      container: 'map',
+      mapStyle: getBasemapUrl('voyager'),
+
+      initialViewState: {
+        latitude: 0,
+        longitude: 0,
+        zoom: 1
+      },
+      controller: true,
+
+      layers: [
+        new deck.carto.CartoSQLLayer({
+          data: `SELECT * FROM populated_places`,
+          getLineColor: [255, 255, 255],
+          getFillColor: [238, 77, 90],
+          pointRadiusMinPixels: 6,
+          lineWidthMinPixels: 1
+        })
+      ]
+    });
+
+    function setBaseMap(basemap) {
+      deckgl.getMapboxMap().setStyle(getBasemapUrl(basemap))
+    }
+
+    function getBasemapUrl(basemap) {
+      return `https://basemaps.cartocdn.com/gl/${basemap}-gl-style/style.json`
+    }
+
   </script>
 </html>

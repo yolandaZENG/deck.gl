@@ -25,19 +25,19 @@ export default function App() {
   const styleProperties = {
     getLineColor: [0, 0, 0, 0.75],
     getFillColor: [238, 77, 90],
-    getRadius: 100,
-    pointRadiusMinPixels: 6,
     lineWidthMinPixels: 1
   }
 
   const layer = new CartoSQLLayer({
     data: `SELECT * FROM world_population_2015 ${getContinentCondition(continent)}`, // world_population_2015 | `SELECT * FROM world_population_2015 WHERE continent_name='Africa'`,
+    pointRadiusMinPixels: 6,
     ...styleProperties
   });
 
   const tileset = new CartoBQTilerLayer({
     data: 'cartobq.maps.nyc_taxi_points_demo_id',
-    ...styleProperties
+    pointRadiusMinPixels: 2,
+    ...styleProperties,
   });
 
   return (
