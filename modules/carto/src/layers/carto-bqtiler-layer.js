@@ -1,7 +1,9 @@
 import CartoLayer from './carto-layer';
 
-const defaultProps = CartoLayer.defaultProps;
-delete defaultProps.type;
+const defaultProps = {
+  data: null,
+  credentials: null
+};
 
 export default class CartoBQTilerLayer extends CartoLayer { 
   constructor(props) {

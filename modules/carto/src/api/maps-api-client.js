@@ -1,30 +1,43 @@
 import {getDefaultCredentials} from '../auth';
-const VECTOR_EXTENT = 2048;
-const VECTOR_SIMPLIFY_EXTENT = 2048;
+
 const DEFAULT_USER_COMPONENT_IN_URL = '{user}';
 
-export async function getMapTileJSON(sql, credentials) {
+export async function getMapTileJSON(props) {
+  const {
+    data, 
+    credentials, 
+    bufferSize,
+    version,
+    extent,
+    simplifyExtent
+   } = props;
+
+  const isSQL = data.search(' ') > -1;
+  const sql = isSQL ? data : `SELECT * FROM ${data}`;
+
   const mapConfig = {
-    version: '1.3.1',
-    buffersize: {mvt: 1},
+    version,
+    buffersize: {mvt: bufferSize},
     layers: [
       {
         type: 'mapnik',
         options: {
           sql,
-          vector_extent: VECTOR_EXTENT,
-          vector_simplify_extent: VECTOR_SIMPLIFY_EXTENT
+          vector_extent: extent,
+          vector_simplify_extent: simplifyExtent
         }
       }
     ]
   };
 
+  // create request url
   const creds = {...getDefaultCredentials(), ...credentials};
   const encodedApiKey = encodeParameter('api_key', creds.apiKey);
   const encodedClient = encodeParameter('client', 'deck-gl-carto');
   const parameters = [encodedApiKey, encodedClient];
   const url = `${serverURL(creds)}api/v1/map?${parameters.join('&')}`;
 
+  // Compose request
   const opts = {
     method: 'POST',
     headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
