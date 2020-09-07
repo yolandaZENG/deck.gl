@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {render} from 'react-dom';
 import DeckGL from '@deck.gl/react';
+import {MVTLayer} from '@deck.gl/geo-layers';
 import {CartoSQLLayer, CartoBQTilerLayer} from '@deck.gl/carto';
 
 const INITIAL_VIEW_STATE = {
@@ -22,6 +23,7 @@ export default function App() {
   const [continent, setContinent] = useState(null);
 
   const layer = new CartoSQLLayer({
+    id: 'l1',
     data: `SELECT * FROM world_population_2015 ${getContinentCondition(continent)}`, // world_population_2015 | `SELECT * FROM world_population_2015 WHERE continent_name='Africa'`,
     minZoom: 0,
     maxZoom: 23,

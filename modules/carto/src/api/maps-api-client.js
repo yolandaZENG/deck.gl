@@ -3,7 +3,7 @@ const VECTOR_EXTENT = 2048;
 const VECTOR_SIMPLIFY_EXTENT = 2048;
 const DEFAULT_USER_COMPONENT_IN_URL = '{user}';
 
-export async function instantiateMap(sql, credentials) {
+export async function getMapTileJSON(sql, credentials) {
   const mapConfig = {
     version: '1.3.1',
     buffersize: {mvt: 1},
@@ -33,12 +33,9 @@ export async function instantiateMap(sql, credentials) {
 
   /* global fetch */
   /* eslint no-undef: "error" */
-  const response = await fetch(url, opts);
-  return await response.json();
-}
-
-export function getTilesFromInstance(mapInstance) {
-  return mapInstance.metadata.tilejson.vector.tiles;
+  let response = await fetch(url, opts);
+  response = await response.json();
+  return response.metadata.tilejson.vector;
 }
 
 function serverURL(credentials) {

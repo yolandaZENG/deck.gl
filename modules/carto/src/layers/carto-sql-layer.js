@@ -1,41 +1,16 @@
-import {CompositeLayer} from '@deck.gl/core';
-import {MVTLayer} from '@deck.gl/geo-layers';
-import {instantiateMap, getTilesFromInstance} from '../api/maps-api-client';
+import CartoLayer from './carto-layer';
 
-const defaultProps = {
-  data: null,
-  credentials: null
-};
+const defaultProps = CartoLayer.defaultProps;
+delete defaultProps.type;
 
-export default class CartoSQLLayer extends CompositeLayer {
-  updateState({changeFlags}) {
-    const {data} = this.props;
-    if (changeFlags.dataChanged && data) {
-      this._instantiateMap();
-    }
-  }
-
-  async _instantiateMap() {
-    const {data} = this.props;
-    const isSQL = data.search(' ') > -1;
-    const sql = isSQL ? data : `SELECT * FROM ${data}`;
-
-    const credentials = {...defaultProps.credentials, ...this.props.credentials};
-    const instance = await instantiateMap(sql, credentials);
-    this.setState({mapInstance: instance});
-  }
-
-  renderLayers() {
-    if (!this.state.mapInstance) return [];
-
-    const props = {
-      ...this.props,
-      data: getTilesFromInstance(this.state.mapInstance)
-    };
-
-    return new MVTLayer(props);
+export default class cartoSQLLayer extends CartoLayer { 
+  constructor(props) {
+    super({
+      ...props,
+      type: 'SQL'
+    })
   }
 }
 
-CartoSQLLayer.layerName = 'CartoSQLLayer';
-CartoSQLLayer.defaultProps = defaultProps;
+cartoSQLLayer.layerName = 'cartoSQLLayer';
+cartoSQLLayer.defaultProps = defaultProps;
