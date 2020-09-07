@@ -31,12 +31,13 @@ export default function App() {
   }
 
   const layer = new CartoSQLLayer({
-    id: 'l1',
+    id: 'world_pop',
     data: `SELECT * FROM world_population_2015 ${getContinentCondition(continent)}`, // world_population_2015 | `SELECT * FROM world_population_2015 WHERE continent_name='Africa'`,
     ...styleProperties
   });
 
   const tileset = new CartoBQTilerLayer({
+    id: 'taxi_points',
     data: 'cartobq.maps.nyc_taxi_points_demo_id',
     ...styleProperties
   });
