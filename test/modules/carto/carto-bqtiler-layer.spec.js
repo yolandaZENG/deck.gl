@@ -16,7 +16,7 @@ test('CartoBQTilerLayer', t => {
   t.end();
 });
 
-test.only('CartoBQTilerLayer#_updateTileJSON', t => {
+test('CartoBQTilerLayer#_updateTileJSON', t => {
   const testCases = [
     {
       spies: ['_updateTileJSON'],
