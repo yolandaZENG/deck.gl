@@ -1,22 +1,22 @@
 import test from 'tape-catch';
 import {testLayer, generateLayerTests} from '@deck.gl/test-utils';
-import {CartoSQLLayer} from '@deck.gl/carto';
+import {CartoBQTilerLayer} from '@deck.gl/carto';
 
 // import { MVTLayer } from '@deck.gl/geo-layers';
 // import * as mapsResponse from './mocks/maps.number.json';
 
-test('CartoSQLLayer', t => {
+test('CartoBQTilerLayer', t => {
   const testCases = generateLayerTests({
-    Layer: CartoSQLLayer,
+    Layer: CartoBQTilerLayer,
     assert: t.ok,
     onBeforeUpdate: ({testCase}) => t.comment(testCase.title)
   });
 
-  testLayer({Layer: CartoSQLLayer, testCases, onError: t.notOk});
+  testLayer({Layer: CartoBQTilerLayer, testCases, onError: t.notOk});
   t.end();
 });
 
-test('CartoSQLLayer#_updateTileJSON', t => {
+test.only('CartoBQTilerLayer#_updateTileJSON', t => {
   const testCases = [
     {
       spies: ['_updateTileJSON'],
@@ -55,12 +55,12 @@ test('CartoSQLLayer#_updateTileJSON', t => {
     }
   ];
 
-  testLayer({Layer: CartoSQLLayer, testCases, onError: t.notOk});
+  testLayer({Layer: CartoBQTilerLayer, testCases, onError: t.notOk});
   t.end();
 });
 
 // failing on brower
-// test('CartoSQLLayer#renderSubLayer', t => {
+// test('CartoBQTilerLayer#renderSubLayer', t => {
 //   // polyfill/hijack fetch
 //   /* global global, window */
 //   const _global = typeof global !== 'undefined' ? global : window;
@@ -71,17 +71,17 @@ test('CartoSQLLayer#_updateTileJSON', t => {
 //       json: () => mapsResponse
 //     });
 
-//   const cartoSQLLayer = new CartoSQLLayer({
+//   const CartoBQTilerLayer = new CartoBQTilerLayer({
 //     data: 'table_name'
 //   });
 
-//   testInitializeLayer({layer: cartoSQLLayer, onError: t.notOk});
+//   testInitializeLayer({layer: CartoBQTilerLayer, onError: t.notOk});
 
 //   // Wait for fetch to resolve
 //   _global.setTimeout(() => {
-//     const subLayers = cartoSQLLayer.renderLayers();
+//     const subLayers = CartoBQTilerLayer.renderLayers();
 
-//     const {mapInstance} = cartoSQLLayer.state;
+//     const {mapInstance} = CartoBQTilerLayer.state;
 //     t.ok(mapInstance, 'should have a map instance');
 
 //     t.ok(subLayers[0] instanceof MVTLayer, 'Sublayer MVTLayer created');
@@ -123,7 +123,7 @@ test('CartoSQLLayer#_updateTileJSON', t => {
 //   // ];
 
 //   // testLayer({
-//   //   Layer: TestCartoSQLLayer,
+//   //   Layer: TestCartoBQTilerLayer,
 //   //   testCases,
 //   //   onError: t.notOk
 //   // });
