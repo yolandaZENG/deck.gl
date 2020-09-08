@@ -13,7 +13,7 @@ const defaultProps = {
   simplifyExtent: 4096
 };
 
-export default class cartoSQLLayer extends CartoLayer {
+export default class CartoSQLLayer extends CartoLayer {
   constructor(props) {
     super({
       ...props,
@@ -22,5 +22,5 @@ export default class cartoSQLLayer extends CartoLayer {
   }
 }
 
-cartoSQLLayer.layerName = 'cartoSQLLayer';
-cartoSQLLayer.defaultProps = defaultProps;
+CartoSQLLayer.layerName = 'cartoSQLLayer';
+CartoSQLLayer.defaultProps = defaultProps;
