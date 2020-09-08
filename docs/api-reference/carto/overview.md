@@ -1,11 +1,11 @@
 # @deck.gl/carto
 
-Deck.gl is the prefered and official solution to create modern Location Intelligence Webapps with [CARTO's platform](https://carto.com/)
+Deck.gl is the prefered and official solution to create modern Location Intelligence Webapps with [CARTO platform](https://carto.com/)
 
-It integrates with [CARTO's MAPs API](https://carto.com/developers/maps-api/reference/) to:
+It integrates with [CARTO Maps API](https://carto.com/developers/maps-api/reference/) to:
 
 * Provide a geospatial backend storage for your geospatial data. 
-* Visualize large datasets which doesn't fit in browser memory. 
+* Visualize large datasets which don't fit in browser memory. 
 * SQL spatial interface to work with your data. 
 
 
