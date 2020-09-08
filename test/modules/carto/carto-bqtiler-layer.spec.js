@@ -26,7 +26,7 @@ test.only('CartoBQTilerLayer#_updateTileJSON', t => {
       }
     },
     {
-      updateProps: {data: 'table_name'},
+      updateProps: {data: 'project.dataset.tileset_table_name'},
       spies: ['_updateTileJSON'],
       onAfterUpdate({spies}) {
         t.ok(spies._updateTileJSON.called, 'initial data triggers map instantiation');
@@ -34,7 +34,7 @@ test.only('CartoBQTilerLayer#_updateTileJSON', t => {
       }
     },
     {
-      updateProps: {data: 'table_name'},
+      updateProps: {data: 'project.dataset.tileset_table_name'},
       spies: ['_updateTileJSON'],
       onAfterUpdate({spies}) {
         t.ok(
@@ -44,7 +44,7 @@ test.only('CartoBQTilerLayer#_updateTileJSON', t => {
       }
     },
     {
-      updateProps: {data: 'ANOTHER_TABLE'},
+      updateProps: {data: 'project.dataset.ANOTHER_tileset_table_name'},
       spies: ['_updateTileJSON'],
       onAfterUpdate({spies}) {
         t.ok(
@@ -72,7 +72,7 @@ test.only('CartoBQTilerLayer#_updateTileJSON', t => {
 //     });
 
 //   const CartoBQTilerLayer = new CartoBQTilerLayer({
-//     data: 'table_name'
+//     data: 'project.dataset.tileset_table_name'
 //   });
 
 //   testInitializeLayer({layer: CartoBQTilerLayer, onError: t.notOk});
