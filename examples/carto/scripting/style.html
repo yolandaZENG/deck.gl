@@ -1,0 +1,144 @@
+<html>
+  <head>
+    <!-- deck.gl standalone bundle -->
+    <script src="http://127.0.0.1:8080/modules/core/dist.min.js"></script>
+    <script src="http://127.0.0.1:8080/modules/layers/dist.min.js"></script>
+    <script src="http://127.0.0.1:8080/modules/carto/dist.min.js"></script>
+
+    <!-- Mapbox dependencies -->
+    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.4.0/mapbox-gl.js"></script>
+    <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.4.0/mapbox-gl.css" rel="stylesheet" />
+
+    <style type="text/css">
+      body {margin: 0; padding: 0;}
+      #map {width: 100vw; height: 100vh;}
+      .layer-selector { position: absolute; z-index: 1; top: 0; right: 0; background-color: #FFF; padding: 8px;}
+    </style>
+  </head>
+
+  <body>
+    <div id="map"></div>
+    <div class="layer-selector">
+      <h3>Layer selector</h3>
+      <input type="radio" id="points" name="layer-visibility" value="points" checked onclick="setLayerVisibility(this.value)">
+      <label for="points">Points</label><br>
+      <input type="radio" id="polygons" name="layer-visibility" value="polygons" onclick="setLayerVisibility(this.value)">
+      <label for="polygons">Polygons</label><br>
+    </div>
+  </body>
+
+  <script type="text/javascript">
+
+    const POINT_COLORS = {
+      COLOR_1: [4, 82, 117],
+      COLOR_2: [3, 102, 132],
+      COLOR_3: [4, 123, 144],
+      COLOR_4: [8, 144, 153],
+      COLOR_5: [56, 164, 158],
+      COLOR_6: [90, 184, 161],
+      COLOR_7: [124, 203, 162],
+      COLOR_8: [164, 221, 164],
+      COLOR_9: [205, 238, 168],
+      OTHER: [247, 254, 174]
+    };
+
+    const POLIGON_COLORS = {
+      COLOR_1: [225, 83, 131],
+      COLOR_2: [241, 109, 122],
+      COLOR_3: [250, 138, 118],
+      COLOR_4: [255, 166, 121],
+      COLOR_5: [255, 194, 133],
+      COLOR_6: [255, 221, 154],
+      OTHER: [254, 246, 181]
+    };
+
+    let visibleLayer = 'points'
+
+    deck.carto.setDefaultCredentials({
+      username: 'public',
+      apiKey: 'default_public'
+    });
+
+    const deckgl = new deck.DeckGL({
+      container: 'map',
+      mapStyle: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+
+      initialViewState: {
+        latitude: 31.80289258670676,
+        longitude: -103.0078125,
+        zoom: 3
+      },
+      controller: true,
+      getTooltip: ({object}) => object && (object.properties.value || object.properties.pct_higher_ed).toString(10)
+    });
+
+    render();
+
+    function render() {
+      const layers = [
+        new deck.carto.CartoSQLLayer({
+          id: 'temps',
+          data: `SELECT * FROM temps`,
+          visible: visibleLayer === 'points',
+          getFillColor: object => {
+            if (object.properties.value > 100) {
+              return POINT_COLORS.COLOR_1;
+            } else if (object.properties.value > 96) {
+              return POINT_COLORS.COLOR_2;
+            } else if (object.properties.value > 93) {
+              return POINT_COLORS.COLOR_3;
+            } else if (object.properties.value > 90) {
+              return POINT_COLORS.COLOR_4;
+            } else if (object.properties.value > 86) {
+              return POINT_COLORS.COLOR_5;
+            } else if (object.properties.value > 83) {
+              return POINT_COLORS.COLOR_6;
+            } else if (object.properties.value > 80) {
+              return POINT_COLORS.COLOR_7;
+            } else if (object.properties.value > 76) {
+              return POINT_COLORS.COLOR_8;
+            } else if (object.properties.value > 73) {
+              return POINT_COLORS.COLOR_9;
+            } else {
+              return POINT_COLORS.OTHER;
+            }
+          },
+          pointRadiusMinPixels: 2,
+          pickable: true
+        }),
+        new deck.carto.CartoSQLLayer({
+          id: 'higher_edu_by_county',
+          data: `SELECT * FROM higher_edu_by_county`,
+          visible: visibleLayer === 'polygons',
+          getFillColor: object => {
+            if (object.properties.pct_higher_ed > 70) {
+              return POLIGON_COLORS.COLOR_1;
+            } else if (object.properties.pct_higher_ed > 60) {
+              return POLIGON_COLORS.COLOR_2;
+            } else if (object.properties.pct_higher_ed > 50) {
+              return POLIGON_COLORS.COLOR_3;
+            } else if (object.properties.pct_higher_ed > 40) {
+              return POLIGON_COLORS.COLOR_4;
+            } else if (object.properties.pct_higher_ed > 30) {
+              return POLIGON_COLORS.COLOR_5;
+            } else if (object.properties.pct_higher_ed > 20) {
+              return POLIGON_COLORS.COLOR_6;
+            } else {
+              return POLIGON_COLORS.OTHER;
+            }
+          },
+          getLineColor: [0, 0, 0, 100],
+          lineWidthMinPixels: 0.5,
+          pickable: true
+        })
+      ]
+      deckgl.setProps({layers});
+    }
+
+    function setLayerVisibility(value) {
+      visibleLayer = value
+      render();
+    }
+
+  </script>
+</html>
