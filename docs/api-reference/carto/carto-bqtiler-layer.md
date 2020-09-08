@@ -18,7 +18,7 @@ function App({viewState}) {
           data: 'cartobq.maps.nyc_taxi_points_demo_id',
           getLineColor: [255, 255, 255],
           getFillColor: [238, 77, 90],
-          pointRadiusMinPixels: 6,
+          pointRadiusMinPixels: 2,
           lineWidthMinPixels: 1
         });
 

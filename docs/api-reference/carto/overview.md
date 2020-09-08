@@ -31,7 +31,7 @@ setDefaultCredentials({
 function App({viewState}) {
   const layer = new CartoSQLLayer({
     data: 'SELECT * FROM world_population_2015',
-    pointRadiusMinPixels: 6,
+    pointRadiusMinPixels: 2,
     getLineColor: [0, 0, 0, 0.75],
     getFillColor: [238, 77, 90],
     lineWidthMinPixels: 1
