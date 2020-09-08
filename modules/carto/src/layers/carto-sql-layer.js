@@ -1,26 +1,22 @@
 import CartoLayer from './carto-layer';
+import {getMapTileJSON} from '../api/maps-api-client';
+
+const mapsApiProps = {
+  version: '1.3.1', // MapConfig Version (Maps API)
+  bufferSize: 1, // MVT buffersize in pixels,
+  extent: 4096, // Tile extent in tile coordinate space (MVT spec.)
+  simplifyExtent: 4096 // Simplify extent in tile coordinate space (MVT spec.)
+};
 
 const defaultProps = {
-  // Either a sql query or a name of dataset
-  data: null,
-  // Credentials to connect with CARTO's platform
-  credentials: null,
-  // MVT buffersize in pixels,
-  bufferSize: 1,
-  // MapConfig Version
-  version: '1.3.1',
-  // Tile extent in tile coordinate space as defined by MVT specification.
-  extent: 4096,
-  // Simplify extent in tile coordinate space as defined by MVT specification.
-  simplifyExtent: 4096
+  ...mapsApiProps,
+  ...CartoLayer.defaultProps
 };
 
 export default class CartoSQLLayer extends CartoLayer {
-  constructor(props) {
-    super({
-      ...props,
-      type: 'SQL'
-    });
+  async _updateTileJSON() {
+    const tilejson = await getMapTileJSON(this.props);
+    this.setState({tilejson});
   }
 }
 
