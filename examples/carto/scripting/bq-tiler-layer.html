@@ -21,24 +21,49 @@
 
   <script type="text/javascript">
 
+    const COLORS = {
+      ONE_MILLION: [207, 89, 126],
+      HUNDRED_THOUSAND: [232, 133, 113],
+      TEN_THOUSAND: [238, 180, 121],
+      THOUSAND: [233, 226, 156],
+      HUNDRED: [156, 203, 134],
+      TEN: [57, 177, 133],
+      OTHER: [0, 147, 146]
+    };
+
     const deckgl = new deck.DeckGL({
       container: 'map',
       mapStyle: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
 
       initialViewState: {
-        latitude: 0,
-        longitude: 0,
-        zoom: 1
+        latitude: 40.7368521,
+        longitude: -73.9936065,
+        zoom: 8
       },
       controller: true,
 
       layers: [
         new deck.carto.CartoBQTilerLayer({
           data: 'cartobq.maps.nyc_taxi_points_demo_id',
-          getLineColor: [255, 255, 255],
-          getFillColor: [238, 77, 90],
-          pointRadiusMinPixels: 6,
-          lineWidthMinPixels: 1
+          getFillColor: object => {
+            if (object.properties.aggregated_total > 1000000) {
+              return COLORS.ONE_MILLION;
+            } else if (object.properties.aggregated_total > 100000) {
+              return COLORS.HUNDRED_THOUSAND;
+            } else if (object.properties.aggregated_total > 10000) {
+              return COLORS.TEN_THOUSAND;
+            } else if (object.properties.aggregated_total > 1000) {
+              return COLORS.THOUSAND;
+            } else if (object.properties.aggregated_total > 100) {
+              return COLORS.HUNDRED;
+            } else if (object.properties.aggregated_total > 10) {
+              return COLORS.TEN;
+            } else {
+              return COLORS.OTHER;
+            }
+          },
+          pointRadiusMinPixels: 2,
+          stroked: false
         })
       ]
     });
