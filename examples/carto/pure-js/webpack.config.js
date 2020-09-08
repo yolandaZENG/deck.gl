@@ -6,7 +6,7 @@ const CONFIG = {
 
   entry: {
     app: './app.js'
-  },
+  }
 };
 
 // This line enables bundling against src in this repo rather than installed module
