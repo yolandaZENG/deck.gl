@@ -21,6 +21,7 @@
 
   <script type="text/javascript">
 
+    // Define color breaks
     const COLORS = {
       ONE_MILLION: [207, 89, 126],
       HUNDRED_THOUSAND: [232, 133, 113],
@@ -46,6 +47,7 @@
         new deck.carto.CartoBQTilerLayer({
           data: 'cartobq.maps.nyc_taxi_points_demo_id',
           getFillColor: object => {
+            // Apply color based on an attribute
             if (object.properties.aggregated_total > 1000000) {
               return COLORS.ONE_MILLION;
             } else if (object.properties.aggregated_total > 100000) {

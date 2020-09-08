@@ -20,15 +20,21 @@
     <div id="map"></div>
     <div class="layer-selector">
       <h3>Layer selector</h3>
-      <input type="radio" id="points" name="layer-visibility" value="points" checked onclick="setLayerVisibility(this.value)">
-      <label for="points">Points</label><br>
-      <input type="radio" id="polygons" name="layer-visibility" value="polygons" onclick="setLayerVisibility(this.value)">
-      <label for="polygons">Polygons</label><br>
+      <input type="radio" id="points" name="layer-visibility" value="temps" checked onclick="setLayerVisibility(this.value)">
+      <label for="points">Temperature (points)</label><br>
+      <input type="radio" id="polygons" name="layer-visibility" value="higher_edu_by_county" onclick="setLayerVisibility(this.value)">
+      <label for="polygons">Higher education by county (polygons)</label><br>
     </div>
   </body>
 
   <script type="text/javascript">
 
+    deck.carto.setDefaultCredentials({
+      username: 'public',
+      apiKey: 'default_public'
+    });
+
+    // Colors for the breaks of the point layer
     const POINT_COLORS = {
       COLOR_1: [4, 82, 117],
       COLOR_2: [3, 102, 132],
@@ -42,7 +48,8 @@
       OTHER: [247, 254, 174]
     };
 
-    const POLIGON_COLORS = {
+    // Colors for the breaks of the polygon layer
+    const POLYGON_COLORS = {
       COLOR_1: [225, 83, 131],
       COLOR_2: [241, 109, 122],
       COLOR_3: [250, 138, 118],
@@ -52,13 +59,10 @@
       OTHER: [254, 246, 181]
     };
 
-    let visibleLayer = 'points'
+    // Set the default visible layer
+    let visibleLayer = 'temps';
 
-    deck.carto.setDefaultCredentials({
-      username: 'public',
-      apiKey: 'default_public'
-    });
-
+    // Create Deck.GL map
     const deckgl = new deck.DeckGL({
       container: 'map',
       mapStyle: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
@@ -74,12 +78,20 @@
 
     render();
 
+    // Change the visible layer
+    function setLayerVisibility(value) {
+      visibleLayer = value;
+      render();
+    }
+
+    // Function to render the layers. Will be invoked any time visibility changes.
     function render() {
+  
       const layers = [
         new deck.carto.CartoSQLLayer({
           id: 'temps',
           data: `SELECT * FROM temps`,
-          visible: visibleLayer === 'points',
+          visible: visibleLayer === 'temps',
           getFillColor: object => {
             if (object.properties.value > 100) {
               return POINT_COLORS.COLOR_1;
@@ -109,36 +121,34 @@
         new deck.carto.CartoSQLLayer({
           id: 'higher_edu_by_county',
           data: `SELECT * FROM higher_edu_by_county`,
-          visible: visibleLayer === 'polygons',
+          visible: visibleLayer === 'higher_edu_by_county',
           getFillColor: object => {
             if (object.properties.pct_higher_ed > 70) {
-              return POLIGON_COLORS.COLOR_1;
+              return POLYGON_COLORS.COLOR_1;
             } else if (object.properties.pct_higher_ed > 60) {
-              return POLIGON_COLORS.COLOR_2;
+              return POLYGON_COLORS.COLOR_2;
             } else if (object.properties.pct_higher_ed > 50) {
-              return POLIGON_COLORS.COLOR_3;
+              return POLYGON_COLORS.COLOR_3;
             } else if (object.properties.pct_higher_ed > 40) {
-              return POLIGON_COLORS.COLOR_4;
+              return POLYGON_COLORS.COLOR_4;
             } else if (object.properties.pct_higher_ed > 30) {
-              return POLIGON_COLORS.COLOR_5;
+              return POLYGON_COLORS.COLOR_5;
             } else if (object.properties.pct_higher_ed > 20) {
-              return POLIGON_COLORS.COLOR_6;
+              return POLYGON_COLORS.COLOR_6;
             } else {
-              return POLIGON_COLORS.OTHER;
+              return POLYGON_COLORS.OTHER;
             }
           },
           getLineColor: [0, 0, 0, 100],
           lineWidthMinPixels: 0.5,
           pickable: true
         })
-      ]
+      ];
+      
+      // update layers in deck.gl. 
       deckgl.setProps({layers});
     }
 
-    function setLayerVisibility(value) {
-      visibleLayer = value
-      render();
-    }
-
+  
   </script>
 </html>

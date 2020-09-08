@@ -2,8 +2,7 @@ import {CompositeLayer} from '@deck.gl/core';
 import {MVTLayer} from '@deck.gl/geo-layers';
 import {getMapTileJSON} from '../api/maps-api-client';
 
-const BQ_TILEJSON_ENDPOINT =
-  'https://thingproxy.freeboard.io/fetch/https://bq1.cartocdn.com/tilesjson';
+const BQ_TILEJSON_ENDPOINT = 'https://us-central1-cartobq.cloudfunctions.net/tilejson';
 
 const defaultProps = {
   data: null,
