@@ -15,17 +15,27 @@ setDefaultCredentials({
   apiKey: 'default_public'
 });
 
+// Styles for continent selector
 const selectStyles = {
   position: 'absolute',
   zIndex: 1
 };
 
+// Continents to filter by
+const continents = ['All', 'Africa', 'Asia', 'South America', 'North America', 'Europe', 'Oceania'];
+const options = continents.map(c => (
+  <option key={c} value={c}>
+    {c}
+  </option>
+));
+
+// Build SQL where condition for the selected continent
 function getContinentCondition(continent) {
-  return continent ? `WHERE continent_name='${continent}'` : '';
+  return continent !== 'All' ? `WHERE continent_name='${continent}'` : '';
 }
 
 export default function App() {
-  const [continent, setContinent] = useState(null);
+  const [continent, setContinent] = useState('All');
 
   const layer = new CartoSQLLayer({
     data: `SELECT * FROM world_population_2015 ${getContinentCondition(continent)}`,
@@ -38,9 +48,7 @@ export default function App() {
   return (
     <div>
       <select style={selectStyles} onChange={e => setContinent(e.currentTarget.value)}>
-        <option value="">All</option>
-        <option value="Africa">Africa</option>
-        <option value="Europe">Europe</option>
+        {options}
       </select>
 
       <DeckGL

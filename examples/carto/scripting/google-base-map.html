@@ -35,6 +35,7 @@
       zoom: 2
     });
 
+    // Add the CARTO layer as an Overlay to Google Maps
     const deckOverlay = new deck.GoogleMapsOverlay({
       layers: [
         new deck.carto.CartoSQLLayer({

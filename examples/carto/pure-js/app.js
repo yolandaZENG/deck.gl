@@ -13,6 +13,7 @@ setDefaultCredentials({
   apiKey: 'default_public'
 });
 
+// Add Mapbox GL for the basemap. It's not a requirement if you don't need a basemap.
 const map = new mapboxgl.Map({
   container: 'map',
   style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
@@ -28,6 +29,7 @@ export const deck = new Deck({
   initialViewState: INITIAL_VIEW_STATE,
   controller: true,
   onViewStateChange: ({viewState}) => {
+    // Synchronize Deck.gl view with Mapbox
     map.jumpTo({
       center: [viewState.longitude, viewState.latitude],
       zoom: viewState.zoom,
