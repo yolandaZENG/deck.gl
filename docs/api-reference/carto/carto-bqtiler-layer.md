@@ -4,7 +4,7 @@ import {CartoBQTilerLayerDemo} from 'website-components/doc-demos/geo-layers';
 
 # CartoBQTilerLayer
 
-`CartoBQTilerLayer` is layer to visualize large datasets (millions or billions rows) directly from [Google BigQuery](https://cloud.google.com/bigquery) without having to move data outside BigQuery.
+`CartoBQTilerLayer` is a layer to visualize large datasets (millions or billions rows) directly from [Google BigQuery](https://cloud.google.com/bigquery) without having to move data outside BigQuery.
 
 See [this](https://carto.com/bigquery/beta/) for more info.
 
