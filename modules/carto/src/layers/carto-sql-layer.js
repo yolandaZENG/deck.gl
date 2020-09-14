@@ -8,6 +8,11 @@ const defaultProps = {
   uniqueIdProperty: 'cartodb_id'
 };
 
+const defaultProps = {
+  ...mapsApiProps,
+  ...CartoLayer.defaultProps
+};
+
 export default class CartoSQLLayer extends CartoLayer {
   async _updateTileJSON() {
     const tilejson = await getMapTileJSON(this.props);
