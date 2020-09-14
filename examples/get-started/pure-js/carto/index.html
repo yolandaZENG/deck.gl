@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset='UTF-8' />
+    <title>deck.gl example</title>
+    <style>
+    #container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+    #container > * {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .layer-selector {
+      position: absolute;
+      right: 0;
+      padding: 10px 20px;
+      background-color: white;
+      margin: 10px;
+    }
+    </style>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.4.0/mapbox-gl.css' rel='stylesheet' />
+  </head>
+  <body>
+    <div id="container">
+      <div id="map"></div>
+      <canvas id="deck-canvas"></canvas>     
+    </div>
+     <div class="layer-selector">
+      <h3>Layer selector</h3>
+      <div class="input">
+        <input type="radio" id="sqlLayer" name="layer" value="sql" checked onclick="render(this.value)">
+        <label for="sqlLayer">CartoSQLLAyer</label><br>
+      </div>    
+      <div class="input">
+        <input type="radio" id="bqLayer" name="layer" value="bq" onclick="render(this.value)">
+        <label for="bqLayer">CartoBQTilerLayer</label><br>
+      </div>     
+    </div>
+    <script src='app.js'></script>
+  </body>
+</html>
