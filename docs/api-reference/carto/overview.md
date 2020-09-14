@@ -45,8 +45,8 @@ function App({viewState}) {
 
 You can see real examples at:
 
-* [Scripting](../../../examples/carto/scripting): Quick scripting examples to play with the module without NPM or Webpack. If you're not a web developer this is probably what you're looking for.
+* [Scripting](../../../examples/get-started/carto/scripting): Quick scripting examples to play with the module without NPM or Webpack. If you're not a web developer this is probably what you're looking for.
 
-* [React](../../../examples/carto/react): integrate in a React application.
+* [React](https://github.com/CartoDB/carto-viz-doc/tree/master/deck.gl/examples/react): integrate in a React application.
 
-* [Pure JS](../../../examples/carto/pure-js): integrate in a pure js application using webpack.
+* [Pure JS](../../../examples/get-started/carto/pure-js): integrate in a pure js application using webpack.
