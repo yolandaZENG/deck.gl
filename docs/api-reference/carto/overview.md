@@ -4,9 +4,9 @@ Deck.gl is the prefered and official solution to create modern Location Intellig
 
 It integrates with [CARTO Maps API](https://carto.com/developers/maps-api/reference/) to:
 
-* Provide a geospatial backend storage for your geospatial data. 
-* Visualize large datasets which don't fit in browser memory. 
-* SQL spatial interface to work with your data. 
+* Provide a geospatial backend storage for your geospatial data.
+* Visualize large datasets which don't fit in browser memory.
+* SQL spatial interface to work with your data.
 
 
 ## Install package
@@ -45,8 +45,8 @@ function App({viewState}) {
 
 You can see real examples at:
 
-* [Scripting](../../../examples/get-started/carto/scripting): Quick scripting examples to play with the module without NPM or Webpack. If you're not a web developer this is probably what you're looking for.
+* [Scripting](https://github.com/CartoDB/viz-doc/tree/master/deck.gl/examples/scripting): Quick scripting examples to play with the module without NPM or Webpack. If you're not a web developer this is probably what you're looking for.
 
-* [React](https://github.com/CartoDB/carto-viz-doc/tree/master/deck.gl/examples/react): integrate in a React application.
+* [React](https://github.com/CartoDB/viz-doc/tree/master/deck.gl/examples/react): integrate in a React application.
 
-* [Pure JS](../../../examples/get-started/carto/pure-js): integrate in a pure js application using webpack.
+* [Pure JS](https://github.com/CartoDB/viz-doc/tree/master/deck.gl/examples/pure-js): integrate in a pure js application using webpack.
