@@ -25,19 +25,12 @@ export default class MVTLayer extends TileLayer {
 
   renderSubLayers(props) {
     const {tile} = props;
-    const worldScale = Math.pow(2, tile.z);
 
-    const xScale = WORLD_SIZE / worldScale;
-    const yScale = -xScale;
-
-    const xOffset = (WORLD_SIZE * tile.x) / worldScale;
-    const yOffset = WORLD_SIZE * (1 - tile.y / worldScale);
-
-    const modelMatrix = new Matrix4().scale([xScale, yScale, 1]);
+    const modelMatrix = new Matrix4().scale(this._getModelMatrixScale(tile));
 
     props.autoHighlight = false;
     props.modelMatrix = modelMatrix;
-    props.coordinateOrigin = [xOffset, yOffset, 0];
+    props.coordinateOrigin = this._getCoordinateOrigin(tile);
     props.coordinateSystem = COORDINATE_SYSTEM.CARTESIAN;
     props.extensions = [...(props.extensions || []), new ClipExtension()];
 
@@ -84,6 +77,66 @@ export default class MVTLayer extends TileLayer {
       feature => getFeatureUniqueId(feature, uniqueIdProperty) === featureIdToHighlight
     );
   }
+
+  updateState({props, oldProps, context, changeFlags}) {
+    super.updateState({props, oldProps, context, changeFlags});
+
+    if (changeFlags.viewportChanged){
+      this._getViewportFeatures();
+    }
+  }
+
+  _getModelMatrixScale(tile) {
+    const worldScale = Math.pow(2, tile.z);
+    const xScale = WORLD_SIZE / worldScale;
+    const yScale = -xScale;
+
+    return [xScale, yScale, 1];
+  }
+
+  _getCoordinateOrigin(tile) {
+    const worldScale = Math.pow(2, tile.z);
+    const xOffset = (WORLD_SIZE * tile.x) / worldScale;
+    const yOffset = WORLD_SIZE * (1 - tile.y / worldScale);
+
+    return [xOffset, yOffset, 0]
+  }
+
+  _getViewportFeatures() {
+    const {tileset} = this.state;
+    // tileset.selectedTiles
+    // const allTilesLoaded = tileset.selectedTiles.every(tile => tile.isLoaded);
+    // if (!allTilesLoaded) {
+    //   debugger;
+    //   await Promise.all(tileset.selectedTiles.map(tile => tile.data));
+    // }
+
+    // const data = await Promise.all(tileset.selectedTiles.map(tile => tile.data));
+    // debugger;
+
+    const currentFrustumPlanes = this.context.viewport.getFrustumPlanes();
+
+    tileset.selectedTiles.map(async tile => {
+      const features = await tile.data || [];
+      const transformationMatrix = new Matrix4().translate(this._getCoordinateOrigin(tile)).scale(this._getModelMatrixScale(tile));
+
+      // features.map(f => {
+      //   f.geometry.coordinates = transformationMatrix.transform(f.geometry.coordinates)
+      //   return { ...f };
+      // })
+      const aaa = features.filter(f => {
+        return Object.keys(currentFrustumPlanes).every(plane => {
+          const { normal, distance } = currentFrustumPlanes[plane];
+          return normal.dot(transformationMatrix.transform(f.geometry.coordinates).concat(0)) < distance;
+        })
+      })
+
+      console.log(aaa.length);
+
+    })
+
+  }
+
 }
 
 function getFeatureUniqueId(feature, uniqueIdProperty) {
