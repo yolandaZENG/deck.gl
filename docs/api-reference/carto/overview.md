@@ -2,6 +2,9 @@
 
 Deck.gl is the prefered and official solution to create modern Location Intelligence Webapps with [CARTO platform](https://carto.com/)
 
+<img src="https://raw.githubusercontent.com/CartoDB/viz-doc/master/deck.gl/img/osm_buildings.jpg" />
+
+
 It integrates with [CARTO Maps API](https://carto.com/developers/maps-api/reference/) to:
 
 * Provide a geospatial backend storage for your geospatial data.
