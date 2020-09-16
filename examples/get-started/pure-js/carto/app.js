@@ -70,15 +70,17 @@ function render() {
     new CartoSQLLayer({
       id: 'airports',
       data: 'SELECT * FROM london_neighbourhoods',
-      // uniqueIdProperty: 'cartodb_id',
+      uniqueIdProperty: 'cartodb_id',
       visible: true,
       // visible: visibleLayer === 'airports',
-      // filled: true,
+      filled: true,
       // pointRadiusMinPixels: 2,
       // pointRadiusScale: 2000,
       // getRadius: f => 11 - f.properties.scalerank,
-      // getFillColor: [200, 0, 80, 180],
+      getFillColor: [200, 0, 80, 180],
       // autoHighlight: true
+      lineWidthMinPixels: 1,
+      onViewportFeatures: () => {}
     }),
     new CartoBQTilerLayer({
       id: 'osm_buildings',

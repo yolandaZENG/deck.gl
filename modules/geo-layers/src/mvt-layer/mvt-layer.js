@@ -8,6 +8,7 @@ import {getURLFromTemplate} from '../tile-layer/utils';
 import ClipExtension from './clip-extension';
 
 const WORLD_SIZE = 512;
+const VIEWPORT_CHANGE_DEBOUNCE = 500; // milliseconds
 
 const defaultProps = {
   uniqueIdProperty: {type: 'string', value: ''},
@@ -80,10 +81,7 @@ export default class MVTLayer extends TileLayer {
 
   updateState({props, oldProps, context, changeFlags}) {
     super.updateState({props, oldProps, context, changeFlags});
-
-    if (changeFlags.viewportChanged){
-      this._getViewportFeatures();
-    }
+    this._getViewportFeatures();
   }
 
   _getModelMatrixScale(tile) {
@@ -104,49 +102,38 @@ export default class MVTLayer extends TileLayer {
 
   async _getViewportFeatures() {
     const {tileset} = this.state;
-    // tileset.selectedTiles
-    // const allTilesLoaded = tileset.selectedTiles.every(tile => tile.isLoaded);
-    // if (!allTilesLoaded) {
-    //   debugger;
-    //   await Promise.all(tileset.selectedTiles.map(tile => tile.data));
-    // }
+    const {isLoaded} = tileset;
+    const {onViewportFeatures} = this.props;
 
-    // const data = await Promise.all(tileset.selectedTiles.map(tile => tile.data));
-    // debugger;
+    if (onViewportFeatures && isLoaded) {
 
+      const featureCache = new Set();
+      // TODO check all tiles loaded
+      let viewportFeatures = [];
+      const currentFrustumPlanes = this.context.viewport.getFrustumPlanes();
 
-    const featureCache = new Set();
-    // TODO check all tiles loaded
-    let viewportFeatures = [];
-    const currentFrustumPlanes = this.context.viewport.getFrustumPlanes();
+      await tileset.selectedTiles.forEach(async tile => {
+        const features = await tile.data || [];
+        const transformationMatrix = new Matrix4().translate(this._getCoordinateOrigin(tile)).scale(this._getModelMatrixScale(tile));
+        // TODO if -1 we cannot calculate viewport features
+        viewportFeatures =  viewportFeatures.concat(
+          features.filter(f => {
+            const featureId = getFeatureUniqueId(f, this.props.uniqueIdProperty)
+            if (
+              !featureCache.has(featureId) &&
+              this._checkIfCoordinatesIsInsideFrustum(transformationMatrix, currentFrustumPlanes, f.geometry.coordinates)
+            ) {
+              featureCache.add(featureId);
+              return true;
+            }
+            return false;
+          })
+        );
+      })
 
-    await tileset.selectedTiles.forEach(async tile => {
-      const features = await tile.data || [];
-      const transformationMatrix = new Matrix4().translate(this._getCoordinateOrigin(tile)).scale(this._getModelMatrixScale(tile));
-
-      // TODO distinct IDs
-
-      // TODO if -1 we cannot calculate viewport features
-
-      viewportFeatures =  viewportFeatures.concat(
-        features.filter(f => {
-          const featureId = getFeatureUniqueId(f, this.props.uniqueIdProperty)
-          if (
-            !featureCache.has(featureId) &&
-            this._checkIfCoordinatesIsInsideFrustum(transformationMatrix, currentFrustumPlanes, f.geometry.coordinates)
-          ) {
-            featureCache.add(featureId);
-            return true;
-          }
-          return false;
-        })
-      )
-
-    })
-
-    console.log(viewportFeatures.length);
-    // console.log(feature.id)
-
+      console.log(viewportFeatures.length);
+      // console.log(feature.id)
+    }
   }
 
   _checkIfCoordinatesIsInsideFrustum(matrix, frustumPlanes, coordinates) {
