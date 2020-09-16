@@ -66,7 +66,7 @@ Required. Either a sql query or a name of dataset
 
 * Default: `cartodb_id`
 
-Optional. An string pointing to a unique attribute at the result of the query. An unique attribute is needed for highlighting a feature split across two or more tiles.
+Optional. A string pointing to a unique attribute at the result of the query. An unique attribute is needed for highlighting a feature split across two or more tiles.
 
 
 ##### `credentials` (Object)
