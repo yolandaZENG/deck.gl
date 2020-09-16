@@ -69,19 +69,22 @@ function render() {
   const layers = [
     new CartoSQLLayer({
       id: 'airports',
-      data: 'SELECT * FROM ne_10m_airports',
-      visible: visibleLayer === 'airports',
-      filled: true,
-      pointRadiusMinPixels: 2,
-      pointRadiusScale: 2000,
-      getRadius: f => 11 - f.properties.scalerank,
-      getFillColor: [200, 0, 80, 180],
-      autoHighlight: true
+      data: 'SELECT * FROM london_neighbourhoods',
+      // uniqueIdProperty: 'cartodb_id',
+      visible: true,
+      // visible: visibleLayer === 'airports',
+      // filled: true,
+      // pointRadiusMinPixels: 2,
+      // pointRadiusScale: 2000,
+      // getRadius: f => 11 - f.properties.scalerank,
+      // getFillColor: [200, 0, 80, 180],
+      // autoHighlight: true
     }),
     new CartoBQTilerLayer({
       id: 'osm_buildings',
       data: 'cartobq.maps.osm_buildings',
-      visible: visibleLayer === 'building',
+      // visible: visibleLayer === 'building',
+      visible: false,
       getFillColor: object => {
         // Apply color based on an attribute
         if (object.properties.aggregated_total > 1000000) {

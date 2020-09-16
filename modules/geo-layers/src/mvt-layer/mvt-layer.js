@@ -102,7 +102,7 @@ export default class MVTLayer extends TileLayer {
     return [xOffset, yOffset, 0]
   }
 
-  _getViewportFeatures() {
+  async _getViewportFeatures() {
     const {tileset} = this.state;
     // tileset.selectedTiles
     // const allTilesLoaded = tileset.selectedTiles.every(tile => tile.isLoaded);
@@ -114,27 +114,60 @@ export default class MVTLayer extends TileLayer {
     // const data = await Promise.all(tileset.selectedTiles.map(tile => tile.data));
     // debugger;
 
+
+    const featureCache = new Set();
+    // TODO check all tiles loaded
+    let viewportFeatures = [];
     const currentFrustumPlanes = this.context.viewport.getFrustumPlanes();
 
-    tileset.selectedTiles.map(async tile => {
+    await tileset.selectedTiles.forEach(async tile => {
       const features = await tile.data || [];
       const transformationMatrix = new Matrix4().translate(this._getCoordinateOrigin(tile)).scale(this._getModelMatrixScale(tile));
 
-      // features.map(f => {
-      //   f.geometry.coordinates = transformationMatrix.transform(f.geometry.coordinates)
-      //   return { ...f };
-      // })
-      const aaa = features.filter(f => {
-        return Object.keys(currentFrustumPlanes).every(plane => {
-          const { normal, distance } = currentFrustumPlanes[plane];
-          return normal.dot(transformationMatrix.transform(f.geometry.coordinates).concat(0)) < distance;
-        })
-      })
+      // TODO distinct IDs
 
-      console.log(aaa.length);
+      // TODO if -1 we cannot calculate viewport features
+
+      viewportFeatures =  viewportFeatures.concat(
+        features.filter(f => {
+          const featureId = getFeatureUniqueId(f, this.props.uniqueIdProperty)
+          if (
+            !featureCache.has(featureId) &&
+            this._checkIfCoordinatesIsInsideFrustum(transformationMatrix, currentFrustumPlanes, f.geometry.coordinates)
+          ) {
+            featureCache.add(featureId);
+            return true;
+          }
+          return false;
+        })
+      )
 
     })
 
+    console.log(viewportFeatures.length);
+    // console.log(feature.id)
+
+  }
+
+  _checkIfCoordinatesIsInsideFrustum(matrix, frustumPlanes, coordinates) {
+    if (Array.isArray(coordinates) && coordinates.length &&
+      typeof coordinates[0] === 'number') {
+      return this._coordinateInPlanes(frustumPlanes, matrix.transform(coordinates).concat(0))
+    }
+
+    return coordinates.some(c => {
+      if (Array.isArray(c) && Array.isArray(c[0])) {
+        return this._checkIfCoordinatesIsInsideFrustum(matrix, frustumPlanes, c)
+      }
+      return this._coordinateInPlanes(frustumPlanes, matrix.transform(c).concat(0))
+    })
+  }
+
+  _coordinateInPlanes(frustumPlanes, coordinates) {
+    return Object.keys(frustumPlanes).every(plane => {
+      const { normal, distance } = frustumPlanes[plane];
+      return normal.dot(coordinates) < distance;
+    })
   }
 
 }
