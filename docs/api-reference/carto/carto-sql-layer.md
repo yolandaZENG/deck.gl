@@ -58,15 +58,16 @@ new deck.carto.CartoSQLLayer({});
 
 ## Properties
 
-##### `uniqueIdProperty` (String | Number)
-
-* Default: `cartodb_id`
-
-Optional. An string or number pointing to a tile attribute containing a unique identifier for features across tiles.
-
 ##### `data` (String)
 
 Required. Either a sql query or a name of dataset
+
+##### `uniqueIdProperty` (String)
+
+* Default: `cartodb_id`
+
+Optional. An string pointing to a unique attribute at the result of the query. An unique attribute is needed for highlighting a feature split across two or more tiles.
+
 
 ##### `credentials` (Object)
 
