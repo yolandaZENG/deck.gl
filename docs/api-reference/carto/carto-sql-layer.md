@@ -62,10 +62,10 @@ new deck.carto.CartoSQLLayer({});
 
 Inherits all properties from [`MVTLayer`](/docs/api-reference/geo-layers/mvt-layer.md).
 
-
 ##### `data` (String)
 
 Required. Either a sql query or a name of dataset
+
 
 ##### `uniqueIdProperty` (String)
 
