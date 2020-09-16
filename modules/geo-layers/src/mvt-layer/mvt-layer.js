@@ -1,3 +1,5 @@
+/* global setTimeout clearTimeout */
+
 import {Matrix4} from 'math.gl';
 import {MVTLoader} from '@loaders.gl/mvt';
 import {load} from '@loaders.gl/core';
@@ -81,7 +83,7 @@ export default class MVTLayer extends TileLayer {
 
   updateState({props, oldProps, context, changeFlags}) {
     super.updateState({props, oldProps, context, changeFlags});
-    this._getViewportFeatures();
+    this._debouncedGetViewportFeatures();
   }
 
   _getModelMatrixScale(tile) {
@@ -97,66 +99,83 @@ export default class MVTLayer extends TileLayer {
     const xOffset = (WORLD_SIZE * tile.x) / worldScale;
     const yOffset = WORLD_SIZE * (1 - tile.y / worldScale);
 
-    return [xOffset, yOffset, 0]
+    return [xOffset, yOffset, 0];
+  }
+
+  _debouncedGetViewportFeatures() {
+    const {onViewportFeatures} = this.props;
+
+    if (onViewportFeatures) {
+      let {viewportChangeTimer} = this.state;
+      clearTimeout(viewportChangeTimer);
+
+      viewportChangeTimer = setTimeout(() => {
+        const {tileset} = this.state;
+        const {isLoaded} = tileset;
+
+        if (isLoaded) {
+          this._getViewportFeatures();
+        }
+      }, VIEWPORT_CHANGE_DEBOUNCE);
+
+      this.setState({viewportChangeTimer});
+    }
   }
 
   async _getViewportFeatures() {
     const {tileset} = this.state;
-    const {isLoaded} = tileset;
     const {onViewportFeatures} = this.props;
+    const featureCache = new Set();
+    const currentFrustumPlanes = this.context.viewport.getFrustumPlanes();
+    let viewportFeatures = [];
 
-    if (onViewportFeatures && isLoaded) {
+    await tileset.selectedTiles.forEach(async tile => {
+      const features = (await tile.data) || [];
+      const transformationMatrix = new Matrix4()
+        .translate(this._getCoordinateOrigin(tile))
+        .scale(this._getModelMatrixScale(tile));
 
-      const featureCache = new Set();
-      // TODO check all tiles loaded
-      let viewportFeatures = [];
-      const currentFrustumPlanes = this.context.viewport.getFrustumPlanes();
+      viewportFeatures = viewportFeatures.concat(
+        features.filter(f => {
+          const featureId = getFeatureUniqueId(f, this.props.uniqueIdProperty);
+          if (
+            !featureCache.has(featureId) &&
+            this._checkIfCoordinatesIsInsideFrustum(
+              transformationMatrix,
+              currentFrustumPlanes,
+              f.geometry.coordinates
+            )
+          ) {
+            featureCache.add(featureId);
+            return true;
+          }
+          return false;
+        })
+      );
+    });
 
-      await tileset.selectedTiles.forEach(async tile => {
-        const features = await tile.data || [];
-        const transformationMatrix = new Matrix4().translate(this._getCoordinateOrigin(tile)).scale(this._getModelMatrixScale(tile));
-        // TODO if -1 we cannot calculate viewport features
-        viewportFeatures =  viewportFeatures.concat(
-          features.filter(f => {
-            const featureId = getFeatureUniqueId(f, this.props.uniqueIdProperty)
-            if (
-              !featureCache.has(featureId) &&
-              this._checkIfCoordinatesIsInsideFrustum(transformationMatrix, currentFrustumPlanes, f.geometry.coordinates)
-            ) {
-              featureCache.add(featureId);
-              return true;
-            }
-            return false;
-          })
-        );
-      })
-
-      console.log(viewportFeatures.length);
-      // console.log(feature.id)
-    }
+    onViewportFeatures(viewportFeatures);
   }
 
   _checkIfCoordinatesIsInsideFrustum(matrix, frustumPlanes, coordinates) {
-    if (Array.isArray(coordinates) && coordinates.length &&
-      typeof coordinates[0] === 'number') {
-      return this._coordinateInPlanes(frustumPlanes, matrix.transform(coordinates).concat(0))
+    if (Array.isArray(coordinates) && coordinates.length && typeof coordinates[0] === 'number') {
+      return this._coordinateInPlanes(frustumPlanes, matrix.transform(coordinates).concat(0));
     }
 
     return coordinates.some(c => {
       if (Array.isArray(c) && Array.isArray(c[0])) {
-        return this._checkIfCoordinatesIsInsideFrustum(matrix, frustumPlanes, c)
+        return this._checkIfCoordinatesIsInsideFrustum(matrix, frustumPlanes, c);
       }
-      return this._coordinateInPlanes(frustumPlanes, matrix.transform(c).concat(0))
-    })
+      return this._coordinateInPlanes(frustumPlanes, matrix.transform(c).concat(0));
+    });
   }
 
   _coordinateInPlanes(frustumPlanes, coordinates) {
     return Object.keys(frustumPlanes).every(plane => {
-      const { normal, distance } = frustumPlanes[plane];
+      const {normal, distance} = frustumPlanes[plane];
       return normal.dot(coordinates) < distance;
-    })
+    });
   }
-
 }
 
 function getFeatureUniqueId(feature, uniqueIdProperty) {
