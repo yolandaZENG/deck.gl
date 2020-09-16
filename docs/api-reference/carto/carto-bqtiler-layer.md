@@ -56,10 +56,17 @@ new deck.carto.CartoBQTilerLayer({});
 
 ## Properties
 
-
 ##### `data` (String)
 
 Required. Tileset id
+
+##### `uniqueIdProperty` (String)
+
+* Default: `id`
+
+Optional. Needed for highlighting a feature split across two or more tiles if no [feature id](https://github.com/mapbox/vector-tile-spec/tree/master/2.1#42-features) is provided.
+
+A string pointing to a tile attribute containing a unique identifier for features across tiles.
 
 
 ## Source
