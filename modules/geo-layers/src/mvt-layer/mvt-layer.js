@@ -176,6 +176,14 @@ export default class MVTLayer extends TileLayer {
       return normal.dot(coordinates) < distance;
     });
   }
+
+  finalizeState() {
+    super.finalizeState();
+    const {viewportChangeTimer} = this.state;
+    /* eslint-disable no-unused-expressions */
+    viewportChangeTimer && clearTimeout(viewportChangeTimer);
+    /* eslint-enable no-unused-expressions */
+  }
 }
 
 function getFeatureUniqueId(feature, uniqueIdProperty) {
