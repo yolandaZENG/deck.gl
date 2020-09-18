@@ -1783,6 +1783,14 @@
     "@babel/runtime" "^7.3.1"
     "@loaders.gl/loader-utils" "2.2.3"
 
+"@loaders.gl/core@2.2.8":
+  version "2.2.8"
+  resolved "https://registry.yarnpkg.com/@loaders.gl/core/-/core-2.2.8.tgz#fb2060f3b90d3babe0de2a128fc5227f921c08ad"
+  integrity sha512-PM74zQA6Kn6NJCMoRdEDENy9jQWQyMkICKZ6o8UGa6/oi3dD4LO5GhFZSwU6W/Lxl/IeUwaZBQ3MqfT3aXA0Dg==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    "@loaders.gl/loader-utils" "2.2.8"
+
 "@loaders.gl/csv@^2.2.3":
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/@loaders.gl/csv/-/csv-2.2.3.tgz#eb4d7b546838bc386f7dad83680e1bd0792f1666"
@@ -1817,10 +1825,26 @@
   dependencies:
     "@loaders.gl/loader-utils" "2.2.3"
 
+"@loaders.gl/json@^2.2.8":
+  version "2.2.8"
+  resolved "https://registry.yarnpkg.com/@loaders.gl/json/-/json-2.2.8.tgz#18765df7f426306940fa546b5b9e95b6831c3dab"
+  integrity sha512-15d4bmMtUd/TGydC1HbBn46uZlvXI5YK49GC5HWNu4SMqruvv7J/yWRWRViCP1klYv2ls2lHapgv9qQM8ug/7Q==
+  dependencies:
+    "@loaders.gl/loader-utils" "2.2.8"
+    "@loaders.gl/tables" "2.2.8"
+
 "@loaders.gl/loader-utils@2.2.3", "@loaders.gl/loader-utils@^2.2.3":
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/@loaders.gl/loader-utils/-/loader-utils-2.2.3.tgz#7c0db9793f551f3afe348bb0fb0c4ea62f61ca9b"
   integrity sha512-RS/OcpQgAiZzfRGKjEwpIur7E3Rx1Kr/q7UW9dQGnXbAgaTkQJbbv6J9E8A0++mhwTuYqnHP4nWMZODbgnKJuA==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    "@probe.gl/stats" "^3.3.0"
+
+"@loaders.gl/loader-utils@2.2.8":
+  version "2.2.8"
+  resolved "https://registry.yarnpkg.com/@loaders.gl/loader-utils/-/loader-utils-2.2.8.tgz#9f12f3460260b15e961fa46c3d3c867d7bf48bee"
+  integrity sha512-3F2VgxJPxjuZwAr8fDBkZzx3Wg275XdVaWnyYQ3uyZQ22yGEkrzKc+TlgcqSrxbO5pHrtS5PdS7dmyoJo2+Bdg==
   dependencies:
     "@babel/runtime" "^7.3.1"
     "@probe.gl/stats" "^3.3.0"
@@ -1861,6 +1885,13 @@
   integrity sha512-ykUkPAUhfg/v6YYqfvCS+JG137phDMMWvC9AJAvJHaiP9zAj7zDQ4M4S+dtmfJvUV5yIbb9RJ7blTa9IGlohuQ==
   dependencies:
     "@loaders.gl/core" "2.2.3"
+
+"@loaders.gl/tables@2.2.8":
+  version "2.2.8"
+  resolved "https://registry.yarnpkg.com/@loaders.gl/tables/-/tables-2.2.8.tgz#217d494724f5ee9b64b40a149b8fe53ad26fdf07"
+  integrity sha512-FmOytFxljfZbtZvWpjNz1//Yedk/k7ZRf0Aj1P/fFxgZzAtf6BclvOt+Vf6XiDY2vjGGbAkcaF0nlOqbvSc0Hw==
+  dependencies:
+    "@loaders.gl/core" "2.2.8"
 
 "@loaders.gl/terrain@^2.2.3":
   version "2.2.3"
