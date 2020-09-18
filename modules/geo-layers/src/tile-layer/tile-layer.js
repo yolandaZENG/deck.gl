@@ -43,7 +43,8 @@ export default class TileLayer extends CompositeLayer {
     this.state = {
       tiles: [],
       isLoaded: false,
-      data: null
+      data: null,
+      tilejson: {}
     };
   }
 
@@ -60,10 +61,6 @@ export default class TileLayer extends CompositeLayer {
 
   updateState({props, oldProps, context, changeFlags}) {
     let {tileset} = this.state;
-
-    if (changeFlags.dataChanged) {
-      this._updateTilesUrl({props, oldProps, context, changeFlags})
-    }
 
     const createTileCache =
       !tileset ||
@@ -96,6 +93,7 @@ export default class TileLayer extends CompositeLayer {
         maxRequests
       });
       this.setState({tileset});
+      this._updateTileData({props, tileset})
     } else if (changeFlags.propsChanged || changeFlags.updateTriggersChanged) {
       tileset.setOptions(props);
       // if any props changed, delete the cached layers
@@ -109,21 +107,25 @@ export default class TileLayer extends CompositeLayer {
     }
   }
 
-  async _updateTilesUrl({props, oldProps, context, changeFlags}) {
-    const {data, tilejson} = this.props;
+  async _updateTileData({props, tileset}) {
+    let {data, tilejson, minZoom, maxZoom} = props;
 
-    if (data.length > 0) {
-      this.setState({data});
-    } else if (tilejson) {
+    if (tilejson) {
       if (typeof tilejson === 'string') {
         // Set data null prevent old tiles urls be loaded if tilejson prop url changes
         this.setState({data: null});
-        const {tiles} = await load(tilejson, JSONLoader)
-        this.setState({data: tiles});
+        tilejson = await load(tilejson, JSONLoader)
+        data = tilejson.tiles
+
       } else {
-        this.setState({data: tilejson.tiles});
+        data = tilejson.tiles
       }
+      minZoom = tilejson.minzoom
+      maxZoom = tilejson.maxzoom
     }
+
+    tileset.setOptions({minZoom, maxZoom});
+    this.setState({data, tilejson});
   }
 
   _updateTileset() {
