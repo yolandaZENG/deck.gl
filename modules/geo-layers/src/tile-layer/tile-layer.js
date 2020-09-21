@@ -67,6 +67,7 @@ export default class TileLayer extends CompositeLayer {
     const createTileCache =
       !tileset ||
       changeFlags.dataChanged ||
+      JSON.stringify(props.tilejson) !== JSON.stringify(oldProps.tilejson) ||
       (changeFlags.updateTriggersChanged &&
         (changeFlags.updateTriggersChanged.all || changeFlags.updateTriggersChanged.getTileData));
 
