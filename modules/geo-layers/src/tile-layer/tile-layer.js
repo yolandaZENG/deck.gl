@@ -93,7 +93,7 @@ export default class TileLayer extends CompositeLayer {
         maxRequests
       });
       this.setState({tileset});
-      this._updateTileData({props, tileset})
+      this._updateTileData({props, tileset});
     } else if (changeFlags.propsChanged || changeFlags.updateTriggersChanged) {
       tileset.setOptions(props);
       // if any props changed, delete the cached layers
@@ -114,12 +114,12 @@ export default class TileLayer extends CompositeLayer {
       if (typeof tilejson === 'string') {
         // Set data null prevent old tiles urls be loaded if tilejson prop url changes
         this.setState({data: null});
-        tilejson = await load(tilejson, JSONLoader)
+        tilejson = await load(tilejson, JSONLoader);
       }
 
-      data = tilejson.tiles
-      minZoom = tilejson.minzoom
-      maxZoom = tilejson.maxzoom
+      data = tilejson.tiles;
+      minZoom = tilejson.minzoom;
+      maxZoom = tilejson.maxzoom;
     }
 
     tileset.setOptions({minZoom, maxZoom});
