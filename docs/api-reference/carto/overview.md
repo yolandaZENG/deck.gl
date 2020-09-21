@@ -15,6 +15,8 @@ It integrates with [CARTO Maps API](https://carto.com/developers/maps-api/refere
 ## Install package
 
 ```bash
+npm install deck.gl
+# or
 npm install @deck.gl/core @deck.gl/layers @deck.gl/geo-layers @deck.gl/carto
 ```
 
