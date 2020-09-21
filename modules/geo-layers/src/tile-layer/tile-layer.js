@@ -51,8 +51,9 @@ export default class TileLayer extends CompositeLayer {
 
   get isLoaded() {
     const {tileset} = this.state;
-    return tileset.selectedTiles.every(
-      tile => tile.layers && tile.layers.every(layer => layer.isLoaded)
+    return (
+      tileset.selectedTiles &&
+      tileset.selectedTiles.every(tile => tile.layers && tile.layers.every(layer => layer.isLoaded))
     );
   }
 
@@ -114,12 +115,17 @@ export default class TileLayer extends CompositeLayer {
     if (tilejson) {
       if (typeof tilejson === 'string') {
         this.setState({fetchingTilejson: true});
-        tilejson = await load(tilejson, JSONLoader);
+        try {
+          tilejson = await load(tilejson, JSONLoader);
+        } catch (error) {
+          this.setState({fetchingTilejson: false});
+          throw new Error(`An error occurred fetching Tilejson: ${error}`);
+        }
       }
 
       data = tilejson.tiles;
-      minZoom = tilejson.minzoom;
-      maxZoom = tilejson.maxzoom;
+      minZoom = tilejson.minzoom ? tilejson.minzoom : minZoom;
+      maxZoom = tilejson.maxzoom ? tilejson.maxzoom : maxZoom;
     }
 
     tileset.setOptions({minZoom, maxZoom});
