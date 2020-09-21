@@ -44,7 +44,8 @@ export default class TileLayer extends CompositeLayer {
       tiles: [],
       isLoaded: false,
       data: null,
-      tilejson: {}
+      tilejson: {},
+      fetchingTilejson: false
     };
   }
 
@@ -102,7 +103,7 @@ export default class TileLayer extends CompositeLayer {
       });
     }
 
-    if (this.state.data) {
+    if (!this.state.fetchingTilejson) {
       this._updateTileset();
     }
   }
@@ -112,8 +113,7 @@ export default class TileLayer extends CompositeLayer {
 
     if (tilejson) {
       if (typeof tilejson === 'string') {
-        // Set data null prevent old tiles urls be loaded if tilejson prop url changes
-        this.setState({data: null});
+        this.setState({fetchingTilejson: true});
         tilejson = await load(tilejson, JSONLoader);
       }
 
@@ -123,7 +123,7 @@ export default class TileLayer extends CompositeLayer {
     }
 
     tileset.setOptions({minZoom, maxZoom});
-    this.setState({data, tilejson});
+    this.setState({data, tilejson, fetchingTilejson: false});
   }
 
   _updateTileset() {
