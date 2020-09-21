@@ -7,10 +7,10 @@ const REQUEST_GET_MAX_URL_LENGTH = 2048;
  * Obtain a TileJson from Maps API v1
  */
 export async function getMapTileJSON(props) {
-  const {data, bufferSize, version, extent, credentials} = props;
+  const {data, bufferSize, version, tileExtent, credentials} = props;
   const creds = {...getDefaultCredentials(), ...credentials};
 
-  const mapConfig = createMapConfig({data, bufferSize, version, extent});
+  const mapConfig = createMapConfig({data, bufferSize, version, tileExtent});
   const layergroup = await instantiateMap({mapConfig, credentials: creds});
 
   const tiles = layergroup.metadata.tilejson.vector;
@@ -20,7 +20,7 @@ export async function getMapTileJSON(props) {
 /**
  * Create a mapConfig for Maps API
  */
-function createMapConfig({data, bufferSize, version, extent}) {
+function createMapConfig({data, bufferSize, version, tileExtent}) {
   const isSQL = data.search(' ') > -1;
   const sql = isSQL ? data : `SELECT * FROM ${data}`;
 
@@ -34,7 +34,7 @@ function createMapConfig({data, bufferSize, version, extent}) {
         type: 'mapnik',
         options: {
           sql: sql.trim(),
-          vector_extent: extent
+          vector_extent: tileExtent
         }
       }
     ]

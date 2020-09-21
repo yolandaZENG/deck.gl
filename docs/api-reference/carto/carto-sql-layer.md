@@ -58,6 +58,9 @@ new deck.carto.CartoSQLLayer({});
 
 ## Properties
 
+Inherits all properties from [`MVTLayer`](/docs/api-reference/geo-layers/mvt-layer.md).
+
+
 ##### `data` (String)
 
 Required. Either a sql query or a name of dataset
@@ -96,7 +99,7 @@ Optional. MapConfig version
 * Default: `1.3.1`
 
 
-##### `extent` (String)
+##### `tileExtent` (String)
 
 Optional. Tile extent in tile coordinate space as defined by MVT specification.
 
