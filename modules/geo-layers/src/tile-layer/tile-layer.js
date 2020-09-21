@@ -115,11 +115,9 @@ export default class TileLayer extends CompositeLayer {
         // Set data null prevent old tiles urls be loaded if tilejson prop url changes
         this.setState({data: null});
         tilejson = await load(tilejson, JSONLoader)
-        data = tilejson.tiles
-
-      } else {
-        data = tilejson.tiles
       }
+
+      data = tilejson.tiles
       minZoom = tilejson.minzoom
       maxZoom = tilejson.maxzoom
     }
