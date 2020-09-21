@@ -197,7 +197,7 @@ test('TileLayer#MapView:repeat', async t => {
   t.end();
 });
 
-test.only('TileLayer#Tilejson', async t => {
+test('TileLayer#Tilejson', async t => {
   const testViewport = new WebMercatorViewport({
     width: 100,
     height: 100,
