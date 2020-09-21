@@ -35,7 +35,8 @@ const defaultProps = {
     compare: false
   },
   maxRequests: 6,
-  tilejson: null
+  tilejson: null,
+  onTileJsonLoad: {type: 'function', optional: true, value: null, compare: false},
 };
 
 export default class TileLayer extends CompositeLayer {
@@ -111,6 +112,7 @@ export default class TileLayer extends CompositeLayer {
   }
 
   async _updateTileData({props, tileset}) {
+    const {onTileJsonLoad} = this.props;
     let {data, tilejson, minZoom, maxZoom} = props;
 
     if (tilejson) {
@@ -121,6 +123,10 @@ export default class TileLayer extends CompositeLayer {
         } catch (error) {
           this.setState({fetchingTilejson: false});
           throw new Error(`An error occurred fetching Tilejson: ${error}`);
+        }
+
+        if (onTileJsonLoad) {
+          onTileJsonLoad(tilejson);
         }
       }
 
