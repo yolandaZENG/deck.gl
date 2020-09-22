@@ -35,8 +35,8 @@ const defaultProps = {
     compare: false
   },
   maxRequests: 6,
-  tilejson: null,
-  onTileJsonLoad: {type: 'function', optional: true, value: null, compare: false},
+  tileJSON: null,
+  onTileJSONLoad: {type: 'function', optional: true, value: null, compare: false}
 };
 
 export default class TileLayer extends CompositeLayer {
@@ -45,15 +45,15 @@ export default class TileLayer extends CompositeLayer {
       tiles: [],
       isLoaded: false,
       data: null,
-      tilejson: {},
-      fetchingTilejson: false
+      tileJSON: null,
+      fetchingTileJSON: false
     };
   }
 
   get isLoaded() {
-    const {tileset} = this.state;
+    const {tileset, fetchingTileJSON} = this.state;
     return (
-      tileset.selectedTiles &&
+      !fetchingTileJSON &&
       tileset.selectedTiles.every(tile => tile.layers && tile.layers.every(layer => layer.isLoaded))
     );
   }
@@ -68,7 +68,7 @@ export default class TileLayer extends CompositeLayer {
     const createTileCache =
       !tileset ||
       changeFlags.dataChanged ||
-      JSON.stringify(props.tilejson) !== JSON.stringify(oldProps.tilejson) ||
+      props.tileJSON !== oldProps.tileJSON ||
       (changeFlags.updateTriggersChanged &&
         (changeFlags.updateTriggersChanged.all || changeFlags.updateTriggersChanged.getTileData));
 
@@ -106,37 +106,37 @@ export default class TileLayer extends CompositeLayer {
       });
     }
 
-    if (!this.state.fetchingTilejson) {
+    if (!this.state.fetchingTileJSON) {
       this._updateTileset();
     }
   }
 
   async _updateTileData({props, tileset}) {
-    const {onTileJsonLoad} = this.props;
-    let {data, tilejson, minZoom, maxZoom} = props;
+    const {onTileJSONLoad} = this.props;
+    let {data, tileJSON, minZoom, maxZoom} = props;
 
-    if (tilejson) {
-      if (typeof tilejson === 'string') {
-        this.setState({fetchingTilejson: true});
+    if (tileJSON) {
+      if (typeof tileJSON === 'string') {
+        this.setState({fetchingTileJSON: true});
         try {
-          tilejson = await load(tilejson, JSONLoader);
+          tileJSON = await load(tileJSON, JSONLoader);
         } catch (error) {
-          this.setState({fetchingTilejson: false});
+          this.setState({fetchingTileJSON: false});
           throw new Error(`An error occurred fetching Tilejson: ${error}`);
         }
 
-        if (onTileJsonLoad) {
-          onTileJsonLoad(tilejson);
+        if (onTileJSONLoad) {
+          onTileJSONLoad(tileJSON);
         }
       }
 
-      data = tilejson.tiles;
-      minZoom = tilejson.minzoom ? tilejson.minzoom : minZoom;
-      maxZoom = tilejson.maxzoom ? tilejson.maxzoom : maxZoom;
+      data = tileJSON.tiles;
+      minZoom = tileJSON.minzoom || minZoom;
+      maxZoom = tileJSON.maxzoom || maxZoom;
     }
 
     tileset.setOptions({minZoom, maxZoom});
-    this.setState({data, tilejson, fetchingTilejson: false});
+    this.setState({data, tileJSON, fetchingTileJSON: false});
   }
 
   _updateTileset() {

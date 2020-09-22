@@ -197,7 +197,7 @@ test('TileLayer#MapView:repeat', async t => {
   t.end();
 });
 
-test('TileLayer#Tilejson', async t => {
+test.only('TileLayer#TileJSON', async t => {
   const testViewport = new WebMercatorViewport({
     width: 100,
     height: 100,
@@ -214,7 +214,7 @@ test('TileLayer#Tilejson', async t => {
     return [];
   };
 
-  const tilejson = {
+  const tileJSON = {
     tilejson: '2.2.0',
     name: 'OpenStreetMap',
     description: 'A free editable map of the whole world.',
@@ -237,13 +237,13 @@ test('TileLayer#Tilejson', async t => {
   const fetch = _global.fetch;
 
   _global.fetch = url => {
-    return Promise.resolve(JSON.stringify(tilejson));
+    return Promise.resolve(JSON.stringify(tileJSON));
   };
 
   const testCases = [
     {
       props: {
-        tilejson,
+        tileJSON,
         getTileData,
         renderSubLayers
       },
@@ -256,15 +256,15 @@ test('TileLayer#Tilejson', async t => {
         } else {
           t.is(subLayers.length, 2, 'Rendered sublayers');
           t.is(layer.state.data.length, 3, 'Data is loaded');
-          t.is(layer.state.tileset.minZoom, tilejson.minZoom, 'Min zoom layer is correct');
-          t.is(layer.state.tileset.minZoom, tilejson.maxZoom, 'Max zoom layer is correct');
+          t.is(layer.state.tileset.minZoom, tileJSON.minZoom, 'Min zoom layer is correct');
+          t.is(layer.state.tileset.minZoom, tileJSON.maxZoom, 'Max zoom layer is correct');
           t.ok(layer.isLoaded, 'Layer is loaded');
         }
       }
     },
     {
       props: {
-        tilejson: 'http://echo.jsontest.com/key/value',
+        tileJSON: 'http://echo.jsontest.com/key/value',
         getTileData,
         renderSubLayers
       },
@@ -277,8 +277,8 @@ test('TileLayer#Tilejson', async t => {
         } else {
           t.is(subLayers.length, 2, 'Rendered sublayers');
           t.is(layer.state.data.length, 3, 'Data is loaded');
-          t.is(layer.state.tileset.minZoom, tilejson.minZoom, 'Min zoom layer is correct');
-          t.is(layer.state.tileset.minZoom, tilejson.maxZoom, 'Max zoom layer is correct');
+          t.is(layer.state.tileset.minZoom, tileJSON.minZoom, 'Min zoom layer is correct');
+          t.is(layer.state.tileset.minZoom, tileJSON.maxZoom, 'Max zoom layer is correct');
           t.ok(layer.isLoaded, 'Layer is loaded');
         }
       }
