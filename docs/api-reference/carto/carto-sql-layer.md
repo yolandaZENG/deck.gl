@@ -58,6 +58,9 @@ new deck.carto.CartoSQLLayer({});
 
 ## Properties
 
+Inherits all properties from [`MVTLayer`](/docs/api-reference/geo-layers/mvt-layer.md).
+
+
 ##### `data` (String)
 
 Required. Either a sql query or a name of dataset
@@ -66,7 +69,7 @@ Required. Either a sql query or a name of dataset
 
 * Default: `cartodb_id`
 
-Optional. An string pointing to a unique attribute at the result of the query. An unique attribute is needed for highlighting a feature split across two or more tiles.
+Optional. A string pointing to a unique attribute at the result of the query. A unique attribute is needed for highlighting a feature split across two or more tiles.
 
 
 ##### `credentials` (Object)
@@ -96,7 +99,7 @@ Optional. MapConfig version
 * Default: `1.3.1`
 
 
-##### `extent` (String)
+##### `tileExtent` (String)
 
 Optional. Tile extent in tile coordinate space as defined by MVT specification.
 
