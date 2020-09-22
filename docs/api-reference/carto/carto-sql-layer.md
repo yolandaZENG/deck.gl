@@ -45,6 +45,8 @@ To use pre-bundled scripts:
 
 ```html
 <script src="https://unpkg.com/deck.gl@^8.2.0/dist.min.js"></script>
+<script src="https://unpkg.com/@deck.gl/carto@^8.2.0/dist.min.js"></script>
+
 <!-- or -->
 <script src="https://unpkg.com/@deck.gl/core@^8.0.0/dist.min.js"></script>
 <script src="https://unpkg.com/@deck.gl/layers@^8.2.0/dist.min.js"></script>
