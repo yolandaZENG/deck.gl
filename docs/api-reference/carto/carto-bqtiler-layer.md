@@ -60,7 +60,6 @@ new deck.carto.CartoBQTilerLayer({});
 
 Inherits all properties from [`MVTLayer`](/docs/api-reference/geo-layers/mvt-layer.md).
 
-
 ##### `data` (String)
 
 Required. Tileset id
