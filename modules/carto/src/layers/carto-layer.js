@@ -43,6 +43,7 @@ export default class CartoLayer extends CompositeLayer {
             ? this.state.tilejson.bounds
             : [-180, -90, 180, 90]
           : this.props.extent
+
       })
     );
   }

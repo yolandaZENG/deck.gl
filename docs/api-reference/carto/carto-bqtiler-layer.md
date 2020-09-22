@@ -60,7 +60,6 @@ new deck.carto.CartoBQTilerLayer({});
 
 Inherits all properties from [`MVTLayer`](/docs/api-reference/geo-layers/mvt-layer.md).
 
-
 ##### `data` (String)
 
 Required. Tileset id
@@ -80,7 +79,6 @@ A string pointing to a tile attribute containing a unique identifier for feature
 Optional. When true, automatically fills the `extent` property to define the layer bounds using the information provided by the TileJSON metadata or `[-180, -90, 180, 90]` if it doesn't exist.
 
 Requires `extent` to be `null`.
-
 
 
 ## Source
