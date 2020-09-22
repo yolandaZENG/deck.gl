@@ -1,6 +1,6 @@
 
 
-# CARTO BigQuery Tiler Layer
+# CartoBQTilerLayer
 
 `CartoBQTilerLayer` is a layer to visualize large datasets (millions or billions of rows) directly from [Google BigQuery](https://cloud.google.com/bigquery) without having to move data outside of BigQuery.
 

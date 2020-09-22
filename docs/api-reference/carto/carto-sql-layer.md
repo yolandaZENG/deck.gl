@@ -1,6 +1,6 @@
 
 
-# CARTO SQL Layer
+# CartoSQLLayer
 
 `CartoSQLLayer` is a layer to visualize data hosted in your CARTO account and to apply custom SQL.
 
