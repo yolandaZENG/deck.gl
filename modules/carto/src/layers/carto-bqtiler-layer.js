@@ -2,10 +2,6 @@ import CartoLayer from './carto-layer';
 
 const BQ_TILEJSON_ENDPOINT = 'https://us-central1-cartobq.cloudfunctions.net/tilejson';
 
-const defaultProps = {
-  ...CartoLayer.defaultProps
-};
-
 export default class CartoBQTilerLayer extends CartoLayer {
   async _updateTileJSON() {
     /* global fetch */
@@ -22,4 +18,3 @@ export default class CartoBQTilerLayer extends CartoLayer {
 }
 
 CartoBQTilerLayer.layerName = 'CartoBQTilerLayer';
-CartoBQTilerLayer.defaultProps = defaultProps;
