@@ -32,7 +32,6 @@
     "prepublishOnly": "npm run build-bundle && npm run build-bundle -- --env.dev"
   },
   "dependencies": {
-    "@deck.gl/geo-layers": "^8.2.7",
     "@loaders.gl/loader-utils": "^2.2.3",
     "@loaders.gl/mvt": "^2.2.3",
     "@loaders.gl/tiles": "^2.2.3",
@@ -41,6 +40,7 @@
   "peerDependencies": {
     "@deck.gl/core": "^8.0.0",
     "@deck.gl/layers": "^8.0.0",
+    "@deck.gl/geo-layers": "^8.2.7",
     "@loaders.gl/core": "^2.2.0"
   }
 }

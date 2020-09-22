@@ -2,7 +2,7 @@
 
 # CartoSQLLayer
 
-`CartoSQLLayer` is a layer to visualize data hosted in your CARTO account and apply custom SQL.
+`CartoSQLLayer` is a layer to visualize data hosted in your CARTO account and to apply custom SQL.
 
 ```js
 import DeckGL from '@deck.gl/react';
@@ -45,6 +45,8 @@ To use pre-bundled scripts:
 
 ```html
 <script src="https://unpkg.com/deck.gl@^8.2.0/dist.min.js"></script>
+<script src="https://unpkg.com/@deck.gl/carto@^8.2.0/dist.min.js"></script>
+
 <!-- or -->
 <script src="https://unpkg.com/@deck.gl/core@^8.0.0/dist.min.js"></script>
 <script src="https://unpkg.com/@deck.gl/layers@^8.2.0/dist.min.js"></script>
@@ -57,6 +59,8 @@ new deck.carto.CartoSQLLayer({});
 
 
 ## Properties
+
+Inherits all properties from [`MVTLayer`](/docs/api-reference/geo-layers/mvt-layer.md).
 
 ##### `data` (String)
 
@@ -96,7 +100,7 @@ Optional. MapConfig version
 * Default: `1.3.1`
 
 
-##### `extent` (String)
+##### `tileExtent` (String)
 
 Optional. Tile extent in tile coordinate space as defined by MVT specification.
 
