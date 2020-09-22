@@ -2,9 +2,9 @@
 
 # CartoBQTilerLayer
 
-`CartoBQTilerLayer` is a layer to visualize large datasets (millions or billions rows) directly from [Google BigQuery](https://cloud.google.com/bigquery) without having to move data outside BigQuery.
+`CartoBQTilerLayer` is a layer to visualize large datasets (millions or billions of rows) directly from [Google BigQuery](https://cloud.google.com/bigquery) without having to move data outside of BigQuery.
 
-You need first to generate a tileset of your dataset in your BigQuery account using CARTO BigQuery Tiler. More info [here](https://carto.com/bigquery/beta/).
+First you need first to generate a tileset of your dataset in your BigQuery account using CARTO BigQuery Tiler. For more info click [here](https://carto.com/bigquery/beta/).
 
 ```js
 import DeckGL from '@deck.gl/react';
@@ -43,6 +43,8 @@ To use pre-bundled scripts:
 
 ```html
 <script src="https://unpkg.com/deck.gl@^8.2.0/dist.min.js"></script>
+<script src="https://unpkg.com/@deck.gl/carto@^8.2.0/dist.min.js"></script>
+
 <!-- or -->
 <script src="https://unpkg.com/@deck.gl/core@^8.0.0/dist.min.js"></script>
 <script src="https://unpkg.com/@deck.gl/layers@^8.2.0/dist.min.js"></script>

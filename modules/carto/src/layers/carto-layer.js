@@ -31,20 +31,20 @@ export default class CartoLayer extends CompositeLayer {
   }
 
   renderLayers() {
-    if (!this.state.tilejson) return [];
+    if (!this.state.tilejson) return null;
 
-    const props = {
-      ...this.getSubLayerProps(this.props),
-      uniqueIdProperty: this.props.uniqueIdProperty,
-      data: this.state.tilejson.tiles,
-      extent: this.props.autoExtent && !this.props.extent
-        ? this.state.tilejson.bounds
+    return new MVTLayer(
+      this.props,
+      this.getSubLayerProps({
+        id: 'mvt',
+        data: this.state.tilejson.tiles,
+        extent: this.props.autoExtent && !this.props.extent
           ? this.state.tilejson.bounds
-          : [-180, -90, 180, 90]
-        : null
-    };
-
-    return new MVTLayer(props);
+            ? this.state.tilejson.bounds
+            : [-180, -90, 180, 90]
+          : this.props.extent
+      })
+    );
   }
 }
 
