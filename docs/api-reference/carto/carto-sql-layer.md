@@ -1,8 +1,8 @@
 
 
-# CartoSQLLayer
+# CARTO SQL Layer
 
-`CartoSQLLayer` is a layer to visualize data hosted in your CARTO account and apply custom SQL.
+`CartoSQLLayer` is a layer to visualize data hosted in your CARTO account and to apply custom SQL.
 
 ```js
 import DeckGL from '@deck.gl/react';
