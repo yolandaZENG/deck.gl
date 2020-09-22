@@ -1,15 +1,10 @@
 import CartoLayer from './carto-layer';
 import {getMapTileJSON} from '../api/maps-api-client';
 
-const mapsApiProps = {
+const defaultProps = {
   version: '1.3.1', // MapConfig Version (Maps API)
   bufferSize: 1, // MVT buffersize in pixels,
-  tileExtent: 4096 // Tile extent in tile coordinate space (MVT spec.)
-};
-
-const defaultProps = {
-  ...mapsApiProps,
-  ...CartoLayer.defaultProps,
+  tileExtent: 4096, // Tile extent in tile coordinate space (MVT spec.)
   uniqueIdProperty: 'cartodb_id'
 };
 
