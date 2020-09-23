@@ -80,6 +80,8 @@ Optional. When true, automatically fills the `extent` property to define the lay
 
 Requires `extent` to be `null`.
 
+Note that setting `extent` or `autoExtent` will enable underzooming when `minZoom` is set in the layer (see [`extent` documentation](/docs/api-reference/geo-layers/tile-layer#extent)).
+
 
 ## Source
 
