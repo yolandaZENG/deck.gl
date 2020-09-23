@@ -39,9 +39,7 @@ export default class CartoLayer extends CompositeLayer {
         id: 'mvt',
         data: this.state.tilejson.tiles,
         extent: this.props.autoExtent && !this.props.extent
-          ? this.state.tilejson.bounds
-            ? this.state.tilejson.bounds
-            : [-180, -90, 180, 90]
+          ? this.state.tilejson.bounds || [-180, -90, 180, 90]
           : this.props.extent
       })
     );
